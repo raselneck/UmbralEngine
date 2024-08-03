@@ -163,7 +163,7 @@ FString FAppleFileSystem::GetAbsolutePath(const FString& path)
 	return result;
 }
 
-FString FAppleFileSystem::GetExecutableDir()
+FString FAppleFileSystem::GetExecutablePath()
 {
 	char buffer[2048] = {};
 	uint32 bufferSize = static_cast<uint32>(UM_ARRAY_SIZE(buffer));
@@ -172,8 +172,7 @@ FString FAppleFileSystem::GetExecutableDir()
 
 	if (_NSGetExecutablePath(buffer, &bufferSize) == 0)
 	{
-		const FStringView executablePath { buffer, FStringView::StringTraitsType::GetNullTerminatedCharCount(buffer) };
-		return FString { FPath::GetDirectoryName(executablePath) };
+		return FString { buffer, FStringView::StringTraitsType::GetNullTerminatedCharCount(buffer) };
 	}
 
 	UM_LOG(Error, "Failed to get executable directory. Buffer size = {}, required size = {}", UM_ARRAY_SIZE(buffer), bufferSize);

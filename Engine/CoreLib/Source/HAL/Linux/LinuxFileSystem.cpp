@@ -132,7 +132,7 @@ FString FLinuxFileSystem::GetAbsolutePath(const FString& path)
 	return result;
 }
 
-FString FLinuxFileSystem::GetExecutableDir()
+FString FLinuxFileSystem::GetExecutablePath()
 {
 	// https://stackoverflow.com/a/933996
 }

@@ -28,11 +28,11 @@ public:
 	// TODO GetDirectories
 
 	/**
-	 * @brief Gets the absolute path to the current executable's directory.
+	 * @brief Gets the absolute path to the current executable.
 	 *
-	 * @return The absolute path to the current executable's directory.
+	 * @return The absolute path to the current executable.
 	 */
-	[[nodiscard]] static FString GetExecutableDir();
+	[[nodiscard]] static FString GetExecutablePath();
 
 	/**
 	 * @brief Attempts to get all of the files in a directory.

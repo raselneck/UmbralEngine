@@ -110,7 +110,7 @@ FString FWindowsFileSystem::GetAbsolutePath(const FString& path)
 	return FPath::Normalize(absolutePath);
 }
 
-FString FWindowsFileSystem::GetExecutableDir()
+FString FWindowsFileSystem::GetExecutablePath()
 {
 	// Unfortunately, GetModuleFileNameA does not work like GetCurrentDirectoryA as far as
 	// getting the length of the directory goes. We need to use a temporary buffer with this
@@ -123,9 +123,7 @@ FString FWindowsFileSystem::GetExecutableDir()
 		return {};
 	}
 
-	// Buffer now contains the EXE file path, so let's remove that
-	FStringView executablePath { buffer, static_cast<FStringView::SizeType>(pathLength) };
-	FString result { FPath::GetDirectoryName(executablePath) };
+	FString result { buffer, static_cast<FStringView::SizeType>(pathLength) };
 	return FPath::Normalize(result);
 }
 
