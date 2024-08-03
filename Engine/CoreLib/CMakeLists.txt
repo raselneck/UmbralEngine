@@ -1,7 +1,10 @@
 find_package(CURL REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(ICU REQUIRED COMPONENTS i18n uc data)
+find_package(libuv CONFIG REQUIRED)
+find_package(libwebsockets CONFIG REQUIRED)
 find_package(mimalloc CONFIG REQUIRED)
+find_package(PThreads4W REQUIRED)
 
 set(UMBRAL_CORE_LIB_HEADERS
 	"Include/Containers/Any.h"
@@ -303,7 +306,10 @@ target_link_libraries(UmbralCoreLib
 		ICU::data
 		mimalloc-static
 		nothings::stb
+		PThreads4W::PThreads4W
 		tinycthread
+		libuv::uv
+		websockets_shared
 )
 
 umbral_copy_libs_post_build(UmbralCoreLib)
