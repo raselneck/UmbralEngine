@@ -1,0 +1,2 @@
+set(SPIRV_HEADERS_SKIP_EXAMPLES ON CACHE BOOL "Skip building SPIRV-Headers examples" FORCE)
+set(SPIRV_HEADERS_SKIP_INSTALL  ON CACHE BOOL "Skip installing SPIRV-Headers" FORCE)

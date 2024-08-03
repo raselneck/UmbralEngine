@@ -1,0 +1,16 @@
+# Ignore IDE directories
+.clion/*
+.idea/*
+.vs/*
+
+# Ignore build directories
+[Bb]uild/*
+CMakeBuild/*
+CMakeInstall/*
+cmake-*/*
+
+# Ignore platform-specific files
+.DS_Store
+
+# Ignore SPIR-V files because each machine should be able to build shaders
+*.spv

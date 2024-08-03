@@ -1,0 +1,61 @@
+# Attempts to find Google's Depot Tools
+
+if(WIN32)
+	set(DEPOT_TOOLS_DEFAULT_HOME "$ENV{USERPROFILE}")
+else()
+	set(DEPOT_TOOLS_DEFAULT_HOME "$ENV{HOME}")
+endif()
+
+set(DEPOT_TOOLS_PATH "${DEPOT_TOOLS_DEFAULT_HOME}/.depot_tools" CACHE PATH "The path to an existing instance of Google's Depot Tools, or where to download it")
+set(DEPOT_TOOLS_ENABLE_DOWNLOAD OFF CACHE BOOL "Whether or not to download Google's Depot Tools if they were not found")
+
+function(depot_tools_download)
+	message(FATAL_ERROR "TODO: Need to clone Google's Depot Tools to `${DEPOT_TOOLS_PATH}'")
+endfunction()
+
+function(depot_tools_validate)
+	if(WIN32)
+		set(SCRIPT_EXTENSION ".bat")
+	else()
+		set(SCRIPT_EXTENSION "")
+	endif()
+
+	if(EXISTS "${DEPOT_TOOLS_PATH}/autoninja${SCRIPT_EXTENSION}")
+		set(DEPOT_TOOLS_FOUND_AUTONINJA ON PARENT_SCOPE)
+	else()
+		set(DEPOT_TOOLS_FOUND_AUTONINJA OFF PARENT_SCOPE)
+	endif()
+
+	if(EXISTS "${DEPOT_TOOLS_PATH}/fetch${SCRIPT_EXTENSION}")
+		set(DEPOT_TOOLS_FOUND_FETCH ON PARENT_SCOPE)
+	else()
+		set(DEPOT_TOOLS_FOUND_FETCH OFF PARENT_SCOPE)
+	endif()
+
+	if(EXISTS "${DEPOT_TOOLS_PATH}/gn${SCRIPT_EXTENSION}")
+		set(DEPOT_TOOLS_FOUND_GN ON PARENT_SCOPE)
+	else()
+		set(DEPOT_TOOLS_FOUND_GN OFF PARENT_SCOPE)
+	endif()
+endfunction()
+
+if(NOT EXISTS "${DEPOT_TOOLS_PATH}" AND ${DEPOT_TOOLS_ENABLE_DOWNLOAD})
+	depot_tools_download()
+	depot_tools_validate()
+elseif(EXISTS "${DEPOT_TOOLS_PATH}")
+	depot_tools_validate()
+endif()
+
+if(DEPOT_TOOLS_FOUND_AUTONINJA AND DEPOT_TOOLS_FOUND_FETCH AND DEPOT_TOOLS_FOUND_GN)
+	set(DepotTools_FOUND ON CACHE BOOL "")
+	set(DepotTools_DIR "${DEPOT_TOOLS_PATH}" CACHE PATH "")
+else()
+	set(DepotTools_FOUND OFF CACHE BOOL "")
+	set(DepotTools_DIR "" CACHE PATH "")
+endif()
+
+if (${DepotTools_FOUND})
+	message(STATUS "Found depot tools at \"${DEPOT_TOOLS_PATH}\"")
+else()
+	message(WARNING "Failed to find depot tools")
+endif()

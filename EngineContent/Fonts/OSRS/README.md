@@ -1,0 +1,1 @@
+These fonts are taken from the [Old School RuneScape wiki](https://oldschool.runescape.wiki/w/Category:Fonts).

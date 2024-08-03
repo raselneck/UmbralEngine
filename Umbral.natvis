@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- TArray<*> -->
+  <Type Name="TArray&lt;*&gt;">
+    <DisplayString Condition="m_NumElements == 0">Empty</DisplayString>
+    <DisplayString Condition="m_NumElements &lt; 0">Invalid</DisplayString>
+    <DisplayString Condition="m_NumElements &gt; m_Capacity">Invalid</DisplayString>
+    <DisplayString Condition="m_NumElements &lt;= m_Capacity">Num={m_NumElements}</DisplayString>
+    <Expand>
+      <ArrayItems Condition="m_NumElements &lt;= m_Capacity">
+        <Size>m_NumElements</Size>
+        <!-- <ValuePointer>(TArray<$T1>;::ElementType*)m_Data</ValuePointer> -->
+        <!-- <ValuePointer>(TArray&lt;$T1&gt;::ElementType*)m_Data</ValuePointer> -->
+        <ValuePointer>m_Data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- TSpan<*> -->
+  <Type Name="TSpan&lt;*&gt;">
+    <DisplayString Condition="m_NumElements == 0">Empty</DisplayString>
+    <DisplayString Condition="m_NumElements &lt; 0">Invalid</DisplayString>
+    <DisplayString Condition="m_NumElements &gt; 0">Num={m_NumElements}</DisplayString>
+    <Expand>
+      <ArrayItems Condition="m_NumElements &gt; 0">
+        <Size>m_NumElements</Size>
+        <ValuePointer>m_Data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- TODO TStaticArray -->
+
+  <!-- FString -->
+  <Type Name="FString">
+    <Intrinsic Name="IsLong" Expression="m_CharData.m_ValueIndex == 1" />
+    <Intrinsic Name="LNum" Expression="((Private::FLongStringData*)m_CharData.m_ValueStorage.m_Data)->Chars.m_NumElements" />
+    <Intrinsic Name="LChars" Expression="((Private::FLongStringData*)m_CharData.m_ValueStorage.m_Data)->Chars.m_Data" />
+    <Intrinsic Name="SNum" Expression="((Private::FShortStringData*)m_CharData.m_ValueStorage.m_Data)->Length" />
+    <Intrinsic Name="SChars" Expression="((Private::FShortStringData*)m_CharData.m_ValueStorage.m_Data)->Chars" />
+    <DisplayString Condition=" IsLong() &amp;&amp; LNum() == 0">Empty</DisplayString>
+    <DisplayString Condition="!IsLong() &amp;&amp; SNum() == 0">Empty</DisplayString>
+    <DisplayString Condition=" IsLong() &amp;&amp; LNum() &lt; 0">Invalid</DisplayString>
+    <DisplayString Condition="!IsLong() &amp;&amp; SNum() &lt; 0">Invalid</DisplayString>
+    <DisplayString Condition=" IsLong() &amp;&amp; LNum() &gt; 0">{LChars(),[LNum()]s}</DisplayString>
+    <DisplayString Condition="!IsLong() &amp;&amp; SNum() &gt; 0">{SChars(),[SNum()]s}</DisplayString>
+    <StringView Condition=" IsLong() &amp;&amp; LNum() &gt; 0">LChars(),[LNum()]s</StringView>
+    <StringView Condition="!IsLong() &amp;&amp; SNum() &gt; 0">SChars(),[SNum()]s</StringView>
+  </Type>
+
+  <!-- FStringView -->
+  <Type Name="FStringView">
+    <DisplayString Condition="m_CharSpan.m_NumElements == 0">Empty</DisplayString>
+    <DisplayString Condition="m_CharSpan.m_NumElements &lt; 0">Invalid</DisplayString>
+    <DisplayString Condition="m_CharSpan.m_NumElements &gt; 0">{m_CharSpan.m_Data,[m_CharSpan.m_NumElements]s}</DisplayString>
+    <StringView Condition="m_CharSpan.m_NumElements &gt; 0">m_CharSpan.m_Data,[m_CharSpan.m_NumElements]s</StringView>
+  </Type>
+
+  <!-- TOptional -->
+  <Type Name="TOptional&lt;*&gt;">
+    <DisplayString Condition="m_HasValue == false">Empty</DisplayString>
+    <DisplayString Condition="m_HasValue == true">{*(($T1*)(m_Storage.m_Data))}</DisplayString>
+  </Type>
+
+  <!-- TODO TErrorOr -->
+
+  <!-- TODO TUniquePtr -->
+
+  <!-- TODO TSharedPtr -->
+
+  <!-- TODO TWeakPtr -->
+
+  <!-- FVersion -->
+  <Type Name="FVersion">
+    <DisplayString>{m_Major.m_Minor.m_Patch.m_Build}</DisplayString>
+    <StringView>m_Major.m_Minor.m_Patch.m_Build</StringView>
+  </Type>
+
+  <!-- FObjectHeader visualizer -->
+  <Type Name="FObjectHeader">
+    <Intrinsic Name="IsValid" Expression="m_AllocationTime.m_Ticks != 0" />
+    <DisplayString Condition="IsValid()">{(UObject*)(((uint8_t*)this) + sizeof(FObjectHeader))}</DisplayString>
+    <DisplayString>nullptr</DisplayString>
+    <Expand>
+      <ExpandedItem>((UObject*)(((uint8_t*)this) + sizeof(FObjectHeader)))</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- FObjectPtr visualizer -->
+  <Type Name="FObjectPtr">
+    <Intrinsic Name="IsValid" Expression="m_ObjectHash != INVALID_HASH &amp;&amp; m_ObjectHeader != nullptr &amp;&amp; m_ObjectHeader->m_AllocationTime.m_Ticks != 0" />
+    <DisplayString Condition="IsValid()">{(UObject*)(((uint8_t*)m_ObjectHeader) + sizeof(FObjectHeader))}</DisplayString>
+    <DisplayString>nullptr</DisplayString>
+    <Expand>
+      <ExpandedItem>((UObject*)(((uint8_t*)m_ObjectHeader) + sizeof(FObjectHeader)))</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- TObjectPtr visualizer -->
+  <Type Name="TObjectPtr&lt;*&gt;">
+    <Intrinsic Name="IsValid" Expression="m_ObjectHash != INVALID_HASH &amp;&amp; m_ObjectHeader != nullptr &amp;&amp; m_ObjectHeader->m_AllocationTime.m_Ticks != 0" />
+    <DisplayString Condition="IsValid()">{($T1*)(((uint8_t*)m_ObjectHeader) + sizeof(FObjectHeader))}</DisplayString>
+    <DisplayString>nullptr</DisplayString>
+    <Expand>
+      <ExpandedItem Condition="IsValid()">(($T1*)(((uint8_t*)m_ObjectHeader) + sizeof(FObjectHeader)))</ExpandedItem>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>
