@@ -78,7 +78,8 @@ FString FDirectory::GetContentFilePath(FString&& fileName)
 
 FString FDirectory::GetExecutableDir()
 {
-	return FNativeDirectory::GetExecutableDir();
+	const FString executablePath = FNativeDirectory::GetExecutablePath();
+	return FPath::GetDirectoryName(executablePath);
 }
 
 TErrorOr<void> FDirectory::GetFiles(const FStringView pathAsView, const bool recursive, TArray<FString>& files)

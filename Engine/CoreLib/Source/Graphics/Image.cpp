@@ -69,7 +69,7 @@ TErrorOr<void> FImage::LoadFromFile(const FStringView fileName)
 	STBI_FREE(filePixels);
 
 	m_ResourceName.Reset();
-	m_ResourceName.Append(FPath::GetBaseFileName(fileName));
+	m_ResourceName.Append(FPath::GetBaseFileNameAsView(fileName));
 
 	return {};
 }
@@ -160,7 +160,7 @@ TErrorOr<void> FImage::SaveToFile(const FStringView fileName, const EImageFileTy
 	}();
 
 	m_ResourceName.Reset();
-	m_ResourceName.Append(FPath::GetBaseFileName(fileName));
+	m_ResourceName.Append(FPath::GetBaseFileNameAsView(fileName));
 
 	if (writeResult == 0)
 	{

@@ -110,9 +110,14 @@ FString FPath::GetAbsolutePath(const FString& path)
 	return FNativePath::GetAbsolutePath(path);
 }
 
-FStringView FPath::GetBaseFileName(const FStringView path)
+FString FPath::GetBaseFileName(const FStringView path)
 {
-	const FStringView fileName = FPath::GetFileName(path);
+	return FString { GetBaseFileNameAsView(path) };
+}
+
+FStringView FPath::GetBaseFileNameAsView(const FStringView path)
+{
+	const FStringView fileName = FPath::GetFileNameAsView(path);
 	const FStringView extension = GetExtension(path);
 
 	if (extension.IsEmpty())
@@ -124,7 +129,12 @@ FStringView FPath::GetBaseFileName(const FStringView path)
 	return FStringView { fileName.GetChars(), fileName.Length() - extensionLengthToRemove };
 }
 
-FStringView FPath::GetDirectoryName(const FStringView path)
+FString FPath::GetDirectoryName(const FStringView path)
+{
+	return FString { GetDirectoryNameAsView(path) };
+}
+
+FStringView FPath::GetDirectoryNameAsView(const FStringView path)
 {
 	// TODO: Copy implementation from https://referencesource.microsoft.com/#mscorlib/system/io/path.cs,ecfb67b37299beba
 	//       Specifically "InternalGetDirectoryName"
@@ -156,7 +166,18 @@ FStringView FPath::GetExtension(const FStringView path)
 	return path.Right(path.Length() - lastDotIndex - 1);
 }
 
-FStringView FPath::GetFileName(const FStringView path)
+FString FPath::GetExecutableName()
+{
+	const FString executablePath = FNativeFileSystem::GetExecutablePath();
+	return GetBaseFileName(executablePath);
+}
+
+FString FPath::GetFileName(const FStringView path)
+{
+	return FString { GetFileNameAsView(path) };
+}
+
+FStringView FPath::GetFileNameAsView(const FStringView path)
 {
 	const int32 lastSlashIndex = GetLastSlashIndex(path);
 	if (lastSlashIndex == INDEX_NONE)

@@ -35,7 +35,15 @@ public:
 	 * @param path The path.
 	 * @returns The file name, without the extension.
 	 */
-	[[nodiscard]] static FStringView GetBaseFileName(FStringView path);
+	[[nodiscard]] static FString GetBaseFileName(FStringView path);
+
+	/**
+	 * @brief Gets the name of the file at the given path, without the extension.
+	 *
+	 * @param path The path.
+	 * @returns The file name, without the extension.
+	 */
+	[[nodiscard]] static FStringView GetBaseFileNameAsView(FStringView path);
 
 	/**
 	 * @brief Gets the name of the directory that the given path resides in.
@@ -43,7 +51,15 @@ public:
 	 * @param path The path.
 	 * @returns The parent directory.
 	 */
-	[[nodiscard]] static FStringView GetDirectoryName(FStringView path);
+	[[nodiscard]] static FString GetDirectoryName(FStringView path);
+
+	/**
+	 * @brief Gets the name of the directory that the given path resides in.
+	 *
+	 * @param path The path.
+	 * @returns The parent directory.
+	 */
+	[[nodiscard]] static FStringView GetDirectoryNameAsView(FStringView path);
 
 	/**
 	 * @brief Gets the extension for the given file path without the dot.
@@ -54,12 +70,27 @@ public:
 	[[nodiscard]] static FStringView GetExtension(FStringView path);
 
 	/**
+	 * @brief Gets the current executable's name.
+	 *
+	 * @return The current executable's name.
+	 */
+	[[nodiscard]] static FString GetExecutableName();
+
+	/**
 	 * @brief Gets the name of the file at the given path, with the extension.
 	 *
 	 * @param path The path.
 	 * @returns The file name, with the extension.
 	 */
-	[[nodiscard]] static FStringView GetFileName(FStringView path);
+	[[nodiscard]] static FString GetFileName(FStringView path);
+
+	/**
+	 * @brief Gets the name of the file at the given path, with the extension.
+	 *
+	 * @param path The path.
+	 * @returns The file name, with the extension.
+	 */
+	[[nodiscard]] static FStringView GetFileNameAsView(FStringView path);
 
 	/**
 	 * @brief Checks to see if the given path contains any illegal characters.

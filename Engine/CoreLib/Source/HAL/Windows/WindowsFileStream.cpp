@@ -117,7 +117,7 @@ TSharedPtr<FWindowsFileStream> FWindowsFileStream::Open(const FStringView pathAs
 
 	if (handle == INVALID_HANDLE_VALUE)
 	{
-		UM_LOG(Error, "Failed to open file \"{}\" in system mode. Reason: {}", path, FWindowsFileSystem::GetLastError());
+		UM_LOG(Error, "Failed to open file \"{}\". Reason: {}", path, FWindowsFileSystem::GetLastError());
 		return nullptr;
 	}
 
