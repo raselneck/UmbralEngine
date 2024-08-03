@@ -235,8 +235,6 @@ if(WIN32)
 		"Source/HAL/Windows/WindowsFileSystem.h"
 		"Source/HAL/Windows/WindowsTime.cpp"
 		"Source/HAL/Windows/WindowsTime.h"
-		"Source/Threading/Windows/WindowsMutex.cpp"
-		"Source/Threading/Windows/WindowsMutex.h"
 		"Source/Threading/Windows/WindowsThread.cpp"
 		"Source/Threading/Windows/WindowsThread.h"
 	)
@@ -250,8 +248,6 @@ elseif(APPLE)
 		"Source/HAL/Apple/AppleFileSystem.h"
 		"Source/HAL/Apple/AppleTime.cpp"
 		"Source/HAL/Apple/AppleTime.h"
-		"Source/Threading/Posix/PosixMutex.cpp"
-		"Source/Threading/Posix/PosixMutex.h"
 		"Source/Threading/Posix/PosixThread.cpp"
 		"Source/Threading/Posix/PosixThread.h"
 	)
@@ -265,8 +261,6 @@ else()
 		"Source/HAL/Linux/LinuxFileSystem.h"
 		"Source/HAL/Linux/LinuxTime.cpp"
 		"Source/HAL/Linux/LinuxTime.h"
-		"Source/Threading/Posix/PosixMutex.cpp"
-		"Source/Threading/Posix/PosixMutex.h"
 		"Source/Threading/Posix/PosixThread.cpp"
 		"Source/Threading/Posix/PosixThread.h"
 	)
