@@ -20,6 +20,14 @@ class FMutex final
 public:
 
 	/**
+	 * @brief Sets default values for this mutex, which sets it up to be invalid. Use FMutex::Create() to create a valid mutex.
+	 */
+	FMutex();
+
+	// TODO Making the default constructor public is a byproduct of TErrorOr<FMutex> using a variant,
+	//      which needs the first argument type to be default constructible
+
+	/**
 	 * @brief Transfers ownership of another mutex's resources to this mutex.
 	 *
 	 * @param other The other mutex.
@@ -81,11 +89,6 @@ public:
 	}
 
 private:
-
-	/**
-	 * @brief Creates a new, plain mutex.
-	 */
-	FMutex();
 
 	/**
 	 * @brief Disposes of this mutex.

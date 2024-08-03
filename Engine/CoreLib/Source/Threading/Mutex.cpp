@@ -4,6 +4,11 @@
 
 #define GetMutexHandle() reinterpret_cast<pthread_mutex_t*>(&m_MutexHandle)
 
+FMutex::FMutex()
+    : m_MutexHandle { PTHREAD_MUTEX_INITIALIZER }
+{
+}
+
 FMutex::FMutex(FMutex&& other) noexcept
 	: m_MutexHandle { other.m_MutexHandle }
 {
@@ -71,11 +76,6 @@ FMutex& FMutex::operator=(FMutex&& other) noexcept
 	Swap(m_MutexHandle, other.m_MutexHandle);
 
 	return *this;
-}
-
-FMutex::FMutex()
-	: m_MutexHandle { PTHREAD_MUTEX_INITIALIZER }
-{
 }
 
 void FMutex::Dispose()
