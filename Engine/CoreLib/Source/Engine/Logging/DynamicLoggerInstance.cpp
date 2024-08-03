@@ -2,6 +2,7 @@
 #include "Engine/Logging/FileLogListener.h"
 #include "Engine/Logging/StdLogListener.h"
 #include "Engine/InternalLogging.h"
+#include "HAL/Path.h"
 #include "Memory/Memory.h"
 
 bool FDynamicLoggerInstance::Initialize()
@@ -11,7 +12,8 @@ bool FDynamicLoggerInstance::Initialize()
 	// TODO VisualStudioLogListener
 
 	TUniquePtr<FFileLogListener> fileLogger = MakeUnique<FFileLogListener>();
-	if (fileLogger->Open("UmbralEngine.log"_sv))
+	const FString fileLogName = FPath::GetExecutableName() + ".log"_sv;
+	if (fileLogger->Open(fileLogName))
 	{
 		m_Listeners.Add(MoveTemp(fileLogger));
 	}
