@@ -4,42 +4,39 @@
 #include "Engine/MiscMacros.h"
 #include "HAL/TimeSpan.h"
 
-namespace Private
-{
-	class FMutexImpl;
-}
-
-/**
- * @brief An enumeration of possible mutex types.
- */
-enum class EMutexType : uint8
-{
-	Plain,
-	Timed,
-	Recursive
-};
-
 /**
  * @brief Defines a mutex (mutually exclusive) lock.
  */
 class FMutex final
 {
+	UM_DISABLE_COPY(FMutex);
+
+	enum class ELockState : bool
+	{
+		Unlocked,
+		Locked
+	};
+
 public:
 
-	UM_DISABLE_COPY(FMutex);
-	UM_DEFAULT_MOVE(FMutex);
-
 	/**
-	 * @brief Creates a new, plain mutex.
-	 */
-	FMutex();
-
-	/**
-	 * @brief Creates a new mutex.
+	 * @brief Transfers ownership of another mutex's resources to this mutex.
 	 *
-	 * @param type The type of the mutex.
+	 * @param other The other mutex.
 	 */
-	explicit FMutex(EMutexType type);
+	FMutex(FMutex&& other) noexcept;
+
+	/**
+	 * @brief Destroys this mutex.
+	 */
+	~FMutex();
+
+	/**
+	 * @brief Attempts to create a mutex.
+	 *
+	 * @return The created mutex, or the error that was encountered while creating the mutex.
+	 */
+	static TErrorOr<FMutex> Create();
 
 	/**
 	 * @brief Checks to see if this mutex is locked.
@@ -49,22 +46,57 @@ public:
 	[[nodiscard]] bool IsLocked() const;
 
 	/**
+	 * @brief Checks to see if this mutex is valid.
+	 *
+	 * @return True if this mutex is valid, otherwise false.
+	 */
+	[[nodiscard]] bool IsValid() const;
+
+	/**
 	 * @brief Attempts to lock this mutex.
 	 */
 	void Lock();
-
-	/**
-	 * @brief Attempts to lock this mutex. If the mutex is already locked, then this function
-	 *        will return without blocking.
-	 */
-	void TryLock();
 
 	/**
 	 * @brief Attempts to unlock this mutex.
 	 */
 	void Unlock();
 
+	/**
+	 * @brief Transfers ownership of another mutex's resources to this mutex.
+	 *
+	 * @param other The other mutex.
+	 * @return This mutex.
+	 */
+	FMutex& operator=(FMutex&& other) noexcept;
+
+	/**
+	 * @brief Checks to see if this mutex is valid.
+	 *
+	 * @return True if this mutex is valid, otherwise false.
+	 */
+	explicit operator bool() const
+	{
+		return IsValid();
+	}
+
 private:
 
-	TUniquePtr<Private::FMutexImpl> m_Impl;
+	/**
+	 * @brief Creates a new, plain mutex.
+	 */
+	FMutex();
+
+	/**
+	 * @brief Disposes of this mutex.
+	 */
+	void Dispose();
+
+	void* m_MutexHandle = nullptr;
+	ELockState m_LockState = ELockState::Unlocked;
+};
+
+template<>
+struct TIsZeroConstructible<FMutex> : FTrueType
+{
 };
