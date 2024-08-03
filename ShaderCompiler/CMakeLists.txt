@@ -103,10 +103,6 @@ add_executable(UmbralShaderCompiler
 )
 add_executable(umbral::shader_compiler ALIAS UmbralShaderCompiler)
 
-set_target_properties(UmbralShaderCompiler PROPERTIES
-	OUTPUT_NAME "USC"
-)
-
 target_include_directories(UmbralShaderCompiler
 	PUBLIC
 		"Include"
