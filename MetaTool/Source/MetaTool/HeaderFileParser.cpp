@@ -287,7 +287,7 @@ EHeaderFileParseResult FHeaderFileParser::ParseFile(const FStringView filePath, 
 {
 	if (AreGeneratedFilesNewerThanSourceFile(filePath, targetFileDirectory))
 	{
-		//return EHeaderFileParseResult::GeneratedFileUpToDate;
+		return EHeaderFileParseResult::GeneratedFileUpToDate;
 	}
 
 	ts_set_allocator(TreeSitter::Malloc, TreeSitter::Calloc, TreeSitter::Realloc, TreeSitter::Free);
