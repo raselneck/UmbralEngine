@@ -29,6 +29,12 @@ else()
 	set(WITH_ANGLE OFF CACHE INTERNAL "" FORCE)
 endif()
 
+# Since we're using PThreads4W(indows), we want to use pthread on other platforms
+if(NOT WIN32)
+	set(CMAKE_THREAD_PREFER_PTHREAD ON CACHE INTERNAL "" FORCE)
+	set(THREADS_PREFER_PTHREAD_FLAG ON CACHE INTERNAL "" FORCE)
+endif()
+
 add_subdirectory(CMake)
 add_subdirectory(ThirdParty)
 add_subdirectory(Engine/CoreLib)

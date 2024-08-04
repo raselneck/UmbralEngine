@@ -3,13 +3,12 @@
 #include "Engine/IntTypes.h"
 #include "Templates/AndNotOr.h"
 #include "Templates/IsBaseOf.h"
+#include "Templates/IsTypeComplete.h"
 #include "Templates/Forward.h"
 #include "Templates/Move.h"
 #include <new> /* For placement new */
 
 // TODO To help make memory a little safer, can add an FMemoryHandle type that is basically a TSpan<uint8>
-
-class UObject;
 
 /**
  * @brief Defines a way to interact with low-level memory functions.
@@ -55,7 +54,6 @@ public:
 	 */
 	template<typename ElementType>
 	[[nodiscard]] static ElementType* AllocateArray(SizeType numElements)
-		requires TNot<TIsBaseOf<UObject, ElementType>>::Value
 	{
 		return static_cast<ElementType*>(AllocateArray(numElements, sizeof(ElementType)));
 	}
@@ -70,7 +68,6 @@ public:
 	 */
 	template<typename ElementType, typename ... ConstructTypes>
 	[[nodiscard]] static ElementType* AllocateObject(ConstructTypes&& ... args)
-		requires TNot<TIsBaseOf<UObject, ElementType>>::Value
 	{
 		void* objectMemory = Allocate(sizeof(ElementType));
 		ConstructObjectAt<ElementType, ConstructTypes...>(objectMemory, Forward<ConstructTypes>(args) ...);
@@ -87,7 +84,6 @@ public:
 	 */
 	template<typename ElementType, typename ... ConstructTypes>
 	static ElementType ConstructObject(ConstructTypes&& ... args)
-		requires TNot<TIsBaseOf<UObject, ElementType>>::Value
 	{
 		ElementType value { Forward<ConstructTypes>(args)... };
 		return MoveTemp(value);
@@ -104,7 +100,6 @@ public:
 	 */
 	template<typename ElementType, typename ... ConstructTypes>
 	static void ConstructObjectAt(void* objectMemory, ConstructTypes&& ... args)
-		requires TNot<TIsBaseOf<UObject, ElementType>>::Value
 	{
 		new (objectMemory) ElementType(Forward<ConstructTypes>(args) ...);
 	}
@@ -137,7 +132,6 @@ public:
 	 */
 	template<typename ElementType>
 	static void DestructObject(ElementType* object)
-		requires TNot<TIsBaseOf<UObject, ElementType>>::Value
 	{
 		using ElementTypeToDestruct = ElementType;
 		object->~ElementTypeToDestruct();
@@ -165,7 +159,6 @@ public:
 	 */
 	template<typename ElementType>
 	static void FreeObject(ElementType* object)
-		requires TNot<TIsBaseOf<UObject, ElementType>>::Value
 	{
 		DestructObject(object);
 		Free(object);

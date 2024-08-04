@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Engine/Error.h"
-#include "Engine/MiscMacros.h"
 #include "HAL/TimeSpan.h"
+#include "Memory/UniquePtr.h"
 
 /**
  * @brief Defines a mutex (mutually exclusive) lock.
@@ -10,6 +10,8 @@
 class FMutex final
 {
 	UM_DISABLE_COPY(FMutex);
+
+	class FMutexImpl;
 
 	enum class ELockState : bool
 	{
@@ -90,12 +92,7 @@ public:
 
 private:
 
-	/**
-	 * @brief Disposes of this mutex.
-	 */
-	void Dispose();
-
-	void* m_MutexHandle = nullptr;
+	TUniquePtr<FMutexImpl> m_Impl = nullptr;
 	ELockState m_LockState = ELockState::Unlocked;
 };
 

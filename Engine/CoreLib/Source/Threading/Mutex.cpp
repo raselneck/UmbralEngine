@@ -2,32 +2,53 @@
 #include "Threading/Mutex.h"
 #include <pthread.h>
 
-#define GetMutexHandle() reinterpret_cast<pthread_mutex_t*>(&m_MutexHandle)
-
-FMutex::FMutex()
-    : m_MutexHandle { PTHREAD_MUTEX_INITIALIZER }
+class FMutex::FMutexImpl final
 {
-}
+public:
+
+	/** @brief The mutex handle. */
+	pthread_mutex_t MutexHandle = PTHREAD_MUTEX_INITIALIZER;
+
+	/**
+	 * @brief Creates a new mutex implementation.
+	 *
+	 * @param mutexHandle The mutex handle.
+	 */
+	explicit FMutexImpl(pthread_mutex_t&& mutexHandle)
+		: MutexHandle { MoveTemp(mutexHandle) }
+	{
+	}
+
+	/**
+	 * @brief Destroys this mutex implementation.
+	 */
+	~FMutexImpl()
+	{
+		pthread_mutex_destroy(&MutexHandle);
+	}
+};
+
+FMutex::FMutex() = default;
 
 FMutex::FMutex(FMutex&& other) noexcept
-	: m_MutexHandle { other.m_MutexHandle }
+	: m_Impl { MoveTemp(other.m_Impl) }
 {
-	other.m_MutexHandle = PTHREAD_MUTEX_INITIALIZER;
+	UM_ASSERT(other.m_Impl.IsNull(), "Failed to move mutex resource ownership");
 }
 
 FMutex::~FMutex()
 {
-	Dispose();
+	m_Impl.Reset();
 }
 
 TErrorOr<FMutex> FMutex::Create()
 {
-	FMutex mutex;
-
-	const int32 initResult = pthread_mutex_init(reinterpret_cast<pthread_mutex_t*>(&mutex.m_MutexHandle), nullptr);
+	pthread_mutex_t mutexHandle = PTHREAD_MUTEX_INITIALIZER;
+	const int32 initResult = pthread_mutex_init(&mutexHandle, nullptr);
 	if (initResult == 0)
 	{
-		return TErrorOr<FMutex> { MoveTemp(mutex) };
+		FMutex mutex;
+		mutex.m_Impl = MakeUnique<FMutexImpl>(MoveTemp(mutexHandle));
 	}
 
 	switch (initResult)
@@ -46,22 +67,24 @@ bool FMutex::IsLocked() const
 
 bool FMutex::IsValid() const
 {
-	return m_MutexHandle != PTHREAD_MUTEX_INITIALIZER;
+	return m_Impl.IsValid();
 }
 
 void FMutex::Lock()
 {
+	UM_ASSERT(m_Impl.IsValid(), "Attempting to lock invalid mutex");
 	UM_ASSERT(m_LockState != ELockState::Locked, "Attempting to lock an already locked mutex");
 
-	pthread_mutex_lock(GetMutexHandle());
+	pthread_mutex_lock(&m_Impl->MutexHandle);
 	m_LockState = ELockState::Locked;
 }
 
 void FMutex::Unlock()
 {
+	UM_ASSERT(m_Impl.IsValid(), "Attempting to unlock invalid mutex");
 	UM_ASSERT(m_LockState != ELockState::Unlocked, "Attempting to unlock an already unlocked mutex");
 
-	pthread_mutex_unlock(GetMutexHandle());
+	pthread_mutex_unlock(&m_Impl->MutexHandle);
 	m_LockState = ELockState::Unlocked;
 }
 
@@ -72,21 +95,8 @@ FMutex& FMutex::operator=(FMutex&& other) noexcept
 		return *this;
 	}
 
-	Dispose();
-	Swap(m_MutexHandle, other.m_MutexHandle);
+	m_Impl = MoveTemp(other.m_Impl);
+	UM_ASSERT(other.m_Impl.IsNull(), "Failed to move mutex resource ownership");
 
 	return *this;
 }
-
-void FMutex::Dispose()
-{
-	if (m_MutexHandle != PTHREAD_MUTEX_INITIALIZER)
-	{
-		pthread_mutex_destroy(GetMutexHandle());
-		m_MutexHandle = PTHREAD_MUTEX_INITIALIZER;
-	}
-
-	m_LockState = ELockState::Unlocked;
-}
-
-#undef GetMutexHandle

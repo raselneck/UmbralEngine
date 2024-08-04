@@ -29,12 +29,6 @@ public:
 	}
 
 private:
-	/*
-	 * so this is nicole again, how is everyone doing?
-	 * R just handed me the comp and somehow expects me to just start coding?
-	 * my hourly rate is 82$ with a minimum of 4 hours.
-	 * also did you know this text has spell check?
-	 */
 
 	/**
 	 * @brief Surrounds the given expressions with a name and parentheses.
