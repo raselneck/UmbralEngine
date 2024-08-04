@@ -2,12 +2,21 @@
 #include "Threading/Mutex.h"
 #include <pthread.h>
 
+enum class EMutexLockState : bool
+{
+	Unlocked,
+	Locked
+};
+
 class FMutex::FMutexImpl final
 {
 public:
 
 	/** @brief The mutex handle. */
 	pthread_mutex_t MutexHandle = PTHREAD_MUTEX_INITIALIZER;
+
+	/** @brief The mutex's lock state. */
+	EMutexLockState LockState = EMutexLockState::Unlocked;
 
 	/**
 	 * @brief Creates a new mutex implementation.
@@ -62,7 +71,7 @@ TErrorOr<FMutex> FMutex::Create()
 
 bool FMutex::IsLocked() const
 {
-	return m_LockState == ELockState::Locked;
+	return m_Impl.IsValid() && m_Impl->LockState == EMutexLockState::Locked;
 }
 
 bool FMutex::IsValid() const
@@ -73,19 +82,23 @@ bool FMutex::IsValid() const
 void FMutex::Lock()
 {
 	UM_ASSERT(m_Impl.IsValid(), "Attempting to lock invalid mutex");
-	UM_ASSERT(m_LockState != ELockState::Locked, "Attempting to lock an already locked mutex");
+	UM_ASSERT(m_Impl->LockState != EMutexLockState::Locked, "Attempting to lock an already locked mutex");
 
 	pthread_mutex_lock(&m_Impl->MutexHandle);
-	m_LockState = ELockState::Locked;
+	m_Impl->LockState = EMutexLockState::Locked;
 }
 
 void FMutex::Unlock()
 {
 	UM_ASSERT(m_Impl.IsValid(), "Attempting to unlock invalid mutex");
-	UM_ASSERT(m_LockState != ELockState::Unlocked, "Attempting to unlock an already unlocked mutex");
+
+	if (m_Impl->LockState == EMutexLockState::Unlocked)
+	{
+		return;
+	}
 
 	pthread_mutex_unlock(&m_Impl->MutexHandle);
-	m_LockState = ELockState::Unlocked;
+	m_Impl->LockState = EMutexLockState::Unlocked;
 }
 
 FMutex& FMutex::operator=(FMutex&& other) noexcept

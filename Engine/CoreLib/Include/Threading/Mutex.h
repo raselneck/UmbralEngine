@@ -9,15 +9,7 @@
  */
 class FMutex final
 {
-	UM_DISABLE_COPY(FMutex);
-
 	class FMutexImpl;
-
-	enum class ELockState : bool
-	{
-		Unlocked,
-		Locked
-	};
 
 public:
 
@@ -92,8 +84,7 @@ public:
 
 private:
 
-	TUniquePtr<FMutexImpl> m_Impl = nullptr;
-	ELockState m_LockState = ELockState::Unlocked;
+	TUniquePtr<FMutexImpl> m_Impl;
 };
 
 template<>

@@ -44,12 +44,7 @@ namespace Private
 
 		void Delete(void* objectMemory) const
 		{
-			// HACK: This *should* throw a valid compiler error if the type remains complete, but without this check
-			//       it will throw an invalid compiler error for now
-			if constexpr (IsTypeComplete<T>)
-			{
-				FMemory::FreeObject(reinterpret_cast<T*>(objectMemory));
-			}
+			FMemory::FreeObject(reinterpret_cast<T*>(objectMemory));
 		}
 	};
 }
@@ -62,8 +57,8 @@ namespace Private
 template<typename T, typename Deleter = Private::TDefaultDeleter<T>>
 class TUniquePtr final : private Deleter
 {
-	static_assert(TNot<TIsReference<T>>::Value, "Cannot store references in unique pointers");
-	static_assert(TNot<TIsArray<T>>::Value, "Arrays are not currently supported for unique pointers");
+	static_assert(Not<TIsReference<T>>, "Cannot store references in unique pointers");
+	static_assert(Not<TIsArray<T>>, "Arrays are not currently supported for unique pointers");
 
 	template<typename U, typename OtherDeleter>
 	friend class TUniquePtr;
