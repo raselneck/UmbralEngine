@@ -44,7 +44,12 @@ namespace Private
 
 		void Delete(void* objectMemory) const
 		{
-			FMemory::FreeObject(reinterpret_cast<T*>(objectMemory));
+			// HACK: This *should* throw a valid compiler error if the type remains complete, but without this check
+			//       it will throw an invalid compiler error for now
+			if constexpr (IsTypeComplete<T>)
+			{
+				FMemory::FreeObject(reinterpret_cast<T*>(objectMemory));
+			}
 		}
 	};
 }
