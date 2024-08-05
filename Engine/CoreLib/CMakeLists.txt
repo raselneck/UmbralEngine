@@ -239,8 +239,6 @@ if(WIN32)
 		"Source/HAL/Windows/WindowsFileSystem.h"
 		"Source/HAL/Windows/WindowsTime.cpp"
 		"Source/HAL/Windows/WindowsTime.h"
-		"Source/Threading/Windows/WindowsThread.cpp"
-		"Source/Threading/Windows/WindowsThread.h"
 	)
 elseif(APPLE)
 	list(APPEND UMBRAL_CORE_LIB_SOURCES
@@ -252,8 +250,6 @@ elseif(APPLE)
 		"Source/HAL/Apple/AppleFileSystem.h"
 		"Source/HAL/Apple/AppleTime.cpp"
 		"Source/HAL/Apple/AppleTime.h"
-		"Source/Threading/Posix/PosixThread.cpp"
-		"Source/Threading/Posix/PosixThread.h"
 	)
 else()
 	list(APPEND UMBRAL_CORE_LIB_SOURCES
@@ -265,8 +261,6 @@ else()
 		"Source/HAL/Linux/LinuxFileSystem.h"
 		"Source/HAL/Linux/LinuxTime.cpp"
 		"Source/HAL/Linux/LinuxTime.h"
-		"Source/Threading/Posix/PosixThread.cpp"
-		"Source/Threading/Posix/PosixThread.h"
 	)
 endif()
 
@@ -348,6 +342,7 @@ if(WITH_TESTING)
 		"Tests/SharedPtrTests.cpp"
 		"Tests/StaticArrayTests.cpp"
 		"Tests/StringTests.cpp"
+		"Tests/ThreadTests.cpp"
 		"Tests/TupleTests.cpp"
 		"Tests/TypeTraitTests.cpp"
 		"Tests/UniquePtrTests.cpp"
