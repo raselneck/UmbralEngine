@@ -25,3 +25,6 @@ template<typename T, usize N>
 struct TIsZeroConstructible<T[N]> : TIsZeroConstructible<T>
 {
 };
+
+template<typename T>
+inline constexpr bool IsZeroConstructible = TIsZeroConstructible<T>::Value;

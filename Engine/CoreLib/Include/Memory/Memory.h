@@ -4,6 +4,7 @@
 #include "Templates/AndNotOr.h"
 #include "Templates/IsBaseOf.h"
 #include "Templates/IsTypeComplete.h"
+#include "Templates/IsZeroConstructible.h"
 #include "Templates/Forward.h"
 #include "Templates/Move.h"
 #include <new> /* For placement new */
@@ -101,7 +102,14 @@ public:
 	template<typename ElementType, typename ... ConstructTypes>
 	static void ConstructObjectAt(void* objectMemory, ConstructTypes&& ... args)
 	{
-		new (objectMemory) ElementType(Forward<ConstructTypes>(args) ...);
+		if constexpr (IsZeroConstructible<ElementType> && sizeof...(args) == 0)
+		{
+			ZeroOut(objectMemory, sizeof(ElementType));
+		}
+		else
+		{
+			new (objectMemory) ElementType(Forward<ConstructTypes>(args) ...);
+		}
 	}
 
 	/**
