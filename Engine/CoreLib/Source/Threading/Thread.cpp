@@ -163,6 +163,8 @@ void FThread::Sleep(const FTimeSpan duration)
 	}
 
 	struct timespec delayDuration = TimeSpanToTimeSpec(duration);
+
+#if UMBRAL_PLATFORM_IS_WINDOWS
 	const int32 result = pthread_delay_np(&delayDuration);
 
 	if (result == 0)
@@ -175,6 +177,17 @@ void FThread::Sleep(const FTimeSpan duration)
 	case EINVAL: UM_LOG(Error, "Invalid sleep interval given ({} ticks)", duration.GetTicks()); break;
 	default:     UM_LOG(Error, "Unknown error when attempting to sleep thread (error {})", result); break;
 	}
+#else
+	struct timespec remainingDuration {};
+	if (::nanosleep(&delayDuration, &remainingDuration) == 0)
+	{
+		return;
+	}
+
+	// TODO Move the file system errno string handling to FError and use that here
+
+	UM_LOG(Error, "nanosleep interrupted with {}s {}ns remaining", remainingDuration.tv_sec, remainingDuration.tv_nsec);
+#endif
 }
 
 FThread& FThread::operator=(FThread&& other) noexcept
