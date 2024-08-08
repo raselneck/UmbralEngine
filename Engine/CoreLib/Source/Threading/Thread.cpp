@@ -20,20 +20,8 @@ public:
 	 *
 	 * @param function The function to run.
 	 */
-	explicit FThreadImpl(FThreadFunction function)
+	explicit FThreadImpl(TFunction<void()> function)
 		: m_Function { MoveTemp(function) }
-	{
-	}
-
-	/**
-	 * @brief Creates a new thread implementation.
-	 *
-	 * @param function The function to run.
-	 * @param parameter The parameter to pass along to the function.
-	 */
-	explicit FThreadImpl(FParameterizedThreadFunction function, void* parameter)
-		: m_ParameterizedFunction { MoveTemp(function) }
-		, m_Parameter { parameter }
 	{
 	}
 
@@ -82,18 +70,7 @@ public:
 		pthread_attr_init(&threadAttr);
 		pthread_attr_setdetachstate(&threadAttr, PTHREAD_CREATE_JOINABLE);
 
-		const int32 result = [this, &threadAttr]()
-		{
-			if (m_Function.IsValid())
-			{
-				return pthread_create(&m_ThreadHandle, &threadAttr, RunFunction, this);
-			}
-			else
-			{
-				return pthread_create(&m_ThreadHandle, &threadAttr, RunParameterizedFunction, this);
-			}
-		}();
-
+		const int32 result = pthread_create(&m_ThreadHandle, &threadAttr, RunThreadFunction, this);
 		if (result == 0)
 		{
 			m_State = EThreadState::Running;
@@ -117,7 +94,7 @@ private:
 	 * @param opaqueImpl The thread implementation.
 	 * @return Nothing.
 	 */
-	static void* RunFunction(void* opaqueImpl)
+	static void* RunThreadFunction(void* opaqueImpl)
 	{
 		FThreadImpl* impl = reinterpret_cast<FThreadImpl*>(opaqueImpl);
 		impl->m_Function.Invoke();
@@ -126,25 +103,8 @@ private:
 		return nullptr;
 	}
 
-	/**
-	 * @brief Runs m_Function on a thread implementation.
-	 *
-	 * @param opaqueImpl The thread implementation.
-	 * @return Nothing.
-	 */
-	static void* RunParameterizedFunction(void* opaqueImpl)
-	{
-		FThreadImpl* impl = reinterpret_cast<FThreadImpl*>(opaqueImpl);
-		impl->m_ParameterizedFunction.Invoke(impl->m_Parameter);
-		impl->m_State = EThreadState::Finished;
-
-		return nullptr;
-	}
-
 	pthread_t m_ThreadHandle {};
-	FThreadFunction m_Function;
-	FParameterizedThreadFunction m_ParameterizedFunction;
-	void* m_Parameter = nullptr;
+	TFunction<void()> m_Function;
 	EThreadState m_State = EThreadState::WaitingToRun;
 };
 
@@ -164,18 +124,10 @@ FThread::~FThread()
 	}
 }
 
-FThread FThread::Create(FThreadFunction function)
+FThread FThread::Create(TFunction<void()> function)
 {
 	FThread thread;
 	thread.m_Impl = MakeUnique<FThreadImpl>(MoveTemp(function));
-	thread.m_Impl->Run();
-	return thread;
-}
-
-FThread FThread::Create(FParameterizedThreadFunction function, void* parameter)
-{
-	FThread thread;
-	thread.m_Impl = MakeUnique<FThreadImpl>(MoveTemp(function), parameter);
 	thread.m_Impl->Run();
 	return thread;
 }

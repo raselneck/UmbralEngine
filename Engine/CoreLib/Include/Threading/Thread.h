@@ -3,12 +3,8 @@
 #include "Containers/Function.h"
 #include "HAL/TimeSpan.h"
 #include "Memory/UniquePtr.h"
-
-/** The function type for running a thread without any arguments. */
-using FThreadFunction = TFunction<void()>;
-
-/** The function type for running a thread with a user-defined argument. */
-using FParameterizedThreadFunction = TFunction<void(void*)>;
+#include "Templates/Forward.h"
+#include "Templates/Move.h"
 
 /**
  * @brief Defines a way to launch threads or manipulate the calling thread.
@@ -39,16 +35,45 @@ public:
 	 * @param function The function to run on the thread.
 	 * @return The thread.
 	 */
-	static FThread Create(FThreadFunction function);
+	[[nodiscard]] static FThread Create(TFunction<void()> function);
 
 	/**
 	 * @brief Creates a new thread.
 	 *
-	 * @param function The parameterized function to run on the thread.
-	 * @param parameter The parameter to pass along to \p function.
+	 * @tparam ArgTypes The types of the arguments to pass along to the function.
+	 * @param function The function to run on the thread.
+	 * @param parameters The arguments to pass along to the function.
 	 * @return The thread.
 	 */
-	static FThread Create(FParameterizedThreadFunction function, void* parameter);
+	template<typename... ArgTypes>
+	[[nodiscard]] static FThread Create(TFunction<void(ArgTypes...)> function, ArgTypes... parameters)
+	{
+		TFunction<void()> voidFunction = [function = MoveTemp(function), ...parameters = Forward<ArgTypes>(parameters)]() mutable
+		{
+			function(MoveTemp(parameters)...);
+		};
+
+		return Create(MoveTemp(voidFunction));
+	}
+
+	/**
+	 * @brief Creates a new thread.
+	 *
+	 * @tparam ArgTypes The types of the arguments to pass along to the function.
+	 * @param function The function to run on the thread.
+	 * @param parameters The arguments to pass along to the function.
+	 * @return The thread.
+	 */
+	template<typename... ArgTypes>
+	[[nodiscard]] static FThread Create(void (*function)(ArgTypes...), ArgTypes... parameters)
+	{
+		TFunction<void()> voidFunction = [function = function, ...parameters = Forward<ArgTypes>(parameters)]() mutable
+		{
+			function(MoveTemp(parameters)...);
+		};
+
+		return Create(MoveTemp(voidFunction));
+	}
 
 	/**
 	 * @brief Checks to see if this thread is valid.

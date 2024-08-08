@@ -10,26 +10,25 @@
  * @tparam N The sequence number in the Fibonacci sequence to calculate.
  * @param result The result value. Must be a pointer to an int32.
  */
-template<int32 N>
-static void CalculateNthFibonacciNumber(void* result)
+static void CalculateNthFibonacciNumber(int32 N, int32* result)
 {
-	if constexpr (N == 0)
+	if (N == 0)
 	{
 		*reinterpret_cast<int32*>(result) = 0;
 	}
-	else if constexpr (N == 1)
+	else if (N == 1)
 	{
 		*reinterpret_cast<int32*>(result) = 1;
 	}
 	else
 	{
 		int32 nMinusOne = 0;
-		CalculateNthFibonacciNumber<N - 1>(&nMinusOne);
+		CalculateNthFibonacciNumber(N - 1, &nMinusOne);
 
 		int32 nMinusTwo = 0;
-		CalculateNthFibonacciNumber<N - 2>(&nMinusTwo);
+		CalculateNthFibonacciNumber(N - 2, &nMinusTwo);
 
-		*reinterpret_cast<int32*>(result) = nMinusOne + nMinusTwo;
+		*result = nMinusOne + nMinusTwo;
 	}
 }
 
@@ -40,7 +39,7 @@ TEST(ThreadTests, ParameterizedThreadFunction)
 	const FTimePoint calculationStart = FTimePoint::Now();
 
 	int32 result = 0;
-	FThread fibonacciThread = FThread::Create(CalculateNthFibonacciNumber<N>, &result);
+	FThread fibonacciThread = FThread::Create(CalculateNthFibonacciNumber, N, &result);
 	fibonacciThread.Join();
 
 	const FTimeSpan calculationDuration = FTimePoint::Now() - calculationStart;
