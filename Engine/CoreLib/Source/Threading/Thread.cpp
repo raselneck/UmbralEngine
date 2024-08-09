@@ -82,7 +82,7 @@ public:
 		case EAGAIN: UM_LOG(Fatal, "The limit on the number of threads for this process has been reached"); break;
 		case EINVAL: UM_LOG(Fatal, "Thread given invalid attributes during creation"); break;
 		case EPERM:  UM_LOG(Fatal, "Insufficient permissions to create thread"); break;
-		default:     UM_LOG(Fatal, "Unknown error encountered while creating thread"); break;
+		default:     UM_LOG(Fatal, "Unknown error ({}) encountered while creating thread", result); break;
 		}
 	}
 
