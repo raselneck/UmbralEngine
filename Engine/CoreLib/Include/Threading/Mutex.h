@@ -14,6 +14,11 @@ class FMutex final
 public:
 
 	/**
+	 * @brief Sets default values for this mutex.
+	 */
+	FMutex();
+
+	/**
 	 * @brief Transfers ownership of another mutex's resources to this mutex.
 	 *
 	 * @param other The other mutex.
@@ -24,13 +29,6 @@ public:
 	 * @brief Destroys this mutex.
 	 */
 	~FMutex();
-
-	/**
-	 * @brief Attempts to create a mutex.
-	 *
-	 * @return The created mutex, or the error that was encountered while creating the mutex.
-	 */
-	static TErrorOr<FMutex> Create();
 
 	/**
 	 * @brief Checks to see if this mutex is locked.
@@ -75,11 +73,6 @@ public:
 	}
 
 private:
-
-	/**
-	 * @brief Sets default values for this mutex, which sets it up to be invalid. Use FMutex::Create() to create a valid mutex.
-	 */
-	FMutex();
 
 	TUniquePtr<FMutexImpl> m_Impl;
 };

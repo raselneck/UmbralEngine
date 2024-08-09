@@ -1,4 +1,5 @@
 #include "Engine/Assert.h"
+#include "Engine/Logging.h"
 #include "Threading/Mutex.h"
 #include <pthread.h>
 
@@ -37,7 +38,24 @@ public:
 	}
 };
 
-FMutex::FMutex() = default;
+FMutex::FMutex()
+{
+	pthread_mutex_t mutexHandle = PTHREAD_MUTEX_INITIALIZER;
+	const int32 initResult = pthread_mutex_init(&mutexHandle, nullptr);
+	if (initResult == 0)
+	{
+		m_Impl = MakeUnique<FMutexImpl>(MoveTemp(mutexHandle));
+		return;
+	}
+
+	switch (initResult)
+	{
+	case EAGAIN: UM_LOG(Fatal, "The system lacks the necessary resources to create another mutex");
+	case ENOMEM: UM_LOG(Fatal, "Insufficient memory exists to initialize a mutex");
+	case EPERM:  UM_LOG(Fatal, "The caller does not have the privilege to initialize a mutex");
+	default:     UM_LOG(Fatal, "An unknown error ({}) occurred while initializing a mutex", initResult);
+	}
+}
 
 FMutex::FMutex(FMutex&& other) noexcept
 	: m_Impl { MoveTemp(other.m_Impl) }
@@ -48,25 +66,6 @@ FMutex::FMutex(FMutex&& other) noexcept
 FMutex::~FMutex()
 {
 	m_Impl.Reset();
-}
-
-TErrorOr<FMutex> FMutex::Create()
-{
-	pthread_mutex_t mutexHandle = PTHREAD_MUTEX_INITIALIZER;
-	const int32 initResult = pthread_mutex_init(&mutexHandle, nullptr);
-	if (initResult == 0)
-	{
-		FMutex mutex;
-		mutex.m_Impl = MakeUnique<FMutexImpl>(MoveTemp(mutexHandle));
-	}
-
-	switch (initResult)
-	{
-	case EAGAIN: return MAKE_ERROR("The system lacked the necessary resources to initialize another mutex");
-	case ENOMEM: return MAKE_ERROR("Insufficient memory exists to initialize a mutex");
-	case EPERM:  return MAKE_ERROR("The caller does not have the privilege to initialize a mutex");
-	default:     return MAKE_ERROR("An unknown error occurred while initializing a mutex");
-	}
 }
 
 bool FMutex::IsLocked() const
