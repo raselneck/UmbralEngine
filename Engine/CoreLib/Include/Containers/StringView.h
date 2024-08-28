@@ -438,6 +438,22 @@ public:
 	}
 
 	/**
+	 * @brief Checks to see if this string view is null-terminated.
+	 *
+	 * @return True if this string view is null-terminated, otherwise false.
+	 */
+	[[nodiscard]] constexpr bool IsNullTerminated() const
+	{
+		if (IsEmpty())
+		{
+			return true;
+		}
+
+		const CharType* chars = GetChars();
+		return chars[Length()] == CharTraitsType::NullChar;
+	}
+
+	/**
 	 * @brief Checks to see if a given index is valid for this string view.
 	 *
 	 * @param index The index to check for.

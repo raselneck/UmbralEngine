@@ -6,6 +6,8 @@
 #include "Misc/NumericBase.h"
 #include "Misc/StringFormatting.h"
 
+class FStringOrStringView;
+
 /**
  * @brief Defines a way to build strings.
  */
@@ -31,6 +33,14 @@ public:
 	 * @return This string builder.
 	 */
 	FStringBuilder& Append(const FString& string);
+
+	/**
+	 * @brief Appends string data.
+	 *
+	 * @param stringOrStringView The string data.
+	 * @return This string builder.
+	 */
+	FStringBuilder& Append(const FStringOrStringView& stringOrStringView);
 
 	/**
 	 * @brief Appends a string view.
