@@ -46,6 +46,7 @@ target_link_libraries(UmbralMetaTool
 target_compile_definitions(UmbralMetaTool
 	PRIVATE
 		-DPROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+		-DWITH_MODULE_EMITTED_TYPES=$<BOOL:${WITH_MODULE_EMITTED_TYPES}>
 )
 
 umbral_copy_libs_post_build(UmbralMetaTool)

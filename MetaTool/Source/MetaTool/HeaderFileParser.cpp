@@ -285,10 +285,13 @@ bool FHeaderFileParser::IncludesFile(const FStringView filePath) const
 
 EHeaderFileParseResult FHeaderFileParser::ParseFile(const FStringView filePath, const FStringView targetFileDirectory)
 {
+#if WITH_MODULE_EMITTED_TYPES == 0
 	if (AreGeneratedFilesNewerThanSourceFile(filePath, targetFileDirectory))
 	{
+		// TODO Re-enable with module emitted types when we have some kind of caching system for the types we emitted
 		return EHeaderFileParseResult::GeneratedFileUpToDate;
 	}
+#endif
 
 	ts_set_allocator(TreeSitter::Malloc, TreeSitter::Calloc, TreeSitter::Realloc, TreeSitter::Free);
 

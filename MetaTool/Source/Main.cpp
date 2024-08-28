@@ -37,6 +37,16 @@ public:
 	~FMetaGenerationContext() = default;
 
 	/**
+	 * @brief Gets all of the emitted type names.
+	 *
+	 * @return All of the emitted type names.
+	 */
+	[[nodiscard]] TSpan<const FString> GetEmittedTypeNames() const
+	{
+		return m_EmittedTypeNames.AsSpan();
+	}
+
+	/**
 	 * @brief Gets a collection of paths to the generated header files.
 	 *
 	 * @return A collection of paths to the generated header files.
@@ -142,6 +152,7 @@ private:
 	TArray<FStringView> m_HeaderFiles;
 	TArray<FString> m_GeneratedHeaderFiles;
 	TArray<FString> m_GeneratedSourceFiles;
+	TArray<FString> m_EmittedTypeNames;
 };
 
 bool FMetaGenerationContext::ReadHeadersFile(const FStringView headersFilePath)
@@ -199,16 +210,22 @@ bool FMetaGenerationContext::ScanFile(const FStringView filePath)
 
 	for (const FParsedClassInfo& classInfo : parser.GetFoundClasses())
 	{
+		(void)m_EmittedTypeNames.Emplace(classInfo.TypeName);
+
 		headerGenerator.EmitClass(classInfo);
 		sourceGenerator.EmitClass(classInfo);
 	}
 	for (const FParsedEnumInfo& enumInfo : parser.GetFoundEnums())
 	{
+		(void)m_EmittedTypeNames.Emplace(enumInfo.EnumName);
+
 		headerGenerator.EmitEnum(enumInfo);
 		sourceGenerator.EmitEnum(enumInfo);
 	}
 	for (const FParsedStructInfo& structInfo : parser.GetFoundStructs())
 	{
+		(void)m_EmittedTypeNames.Emplace(structInfo.TypeName);
+
 		headerGenerator.EmitStruct(structInfo);
 		sourceGenerator.EmitStruct(structInfo);
 	}
@@ -351,6 +368,40 @@ extern "C" int32 UmbralMain()
 	{
 		writer.WriteLine("#include \"{}\""_sv, generatedSourceFilePath);
 	}
+
+#if WITH_MODULE_EMITTED_TYPES
+	writer.WriteLine();
+
+	const int32 numEmittedTypes = context.GetEmittedTypeNames().Num();
+	if (numEmittedTypes == 0)
+	{
+		writer.WriteLine("static const FTypeInfo** GModuleTypes = nullptr;"_sv);
+	}
+	else
+	{
+		writer.WriteLine("static const FTypeInfo* GModuleTypes[{}]"_sv, numEmittedTypes);
+		writer.WriteLine("{"_sv);
+		for (const FStringView& emittedTypeName : context.GetEmittedTypeNames())
+		{
+			writer.WriteLine("\t::GetType<{}>(),"_sv, emittedTypeName);
+		}
+		writer.WriteLine("};"_sv);
+	}
+
+	writer.WriteLine();
+
+	writer.WriteLine("extern \"C\" UMBRAL_EXPORT const FTypeInfo** Umbral_GetModuleTypes()"_sv);
+	writer.WriteLine("{"_sv);
+	writer.WriteLine("\treturn GModuleTypes;"_sv);
+	writer.WriteLine("}"_sv);
+	writer.WriteLine();
+
+	writer.WriteLine("extern \"C\" UMBRAL_EXPORT int32 Umbral_GetNumModuleTypes()"_sv);
+	writer.WriteLine("{"_sv);
+	writer.WriteLine("\treturn {};"_sv, numEmittedTypes);
+	writer.WriteLine("}"_sv);
+	writer.WriteLine();
+#endif
 
 	return EXIT_SUCCESS;
 }

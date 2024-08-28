@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH
 )
 
 option(WITH_IMGUI "Whether or not to build and include ocornut's Dear ImGui in the build" ON)
+option(WITH_MODULE_EMITTED_TYPES "Whether or not modules will export their owned types (still experimental)" OFF)
 option(WITH_TESTING "Whether or not to enable building of tests" ON)
 
 if(WIN32 OR APPLE OR LINUX)

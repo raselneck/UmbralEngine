@@ -4,6 +4,7 @@
 #include "Containers/StringView.h"
 #include "Engine/Assert.h"
 #include "Engine/Engine.h"
+#include "Meta/TypeInfo.h"
 #include "Misc/Version.h"
 #include "Object/ObjectPtr.h"
 #include "Templates/IsConstructible.h"
@@ -43,6 +44,13 @@ public:
 	[[nodiscard]] virtual EModuleType GetModuleType() const;
 
 	/**
+	 * @brief Gets all meta types belonging to this module.
+	 *
+	 * @return All meta types belonging to this module.
+	 */
+	[[nodiscard]] TSpan<const FTypeInfo*> GetModuleTypes() const;
+
+	/**
 	 * @brief Gets this module's version.
 	 *
 	 * @return This module's version.
@@ -66,19 +74,19 @@ protected:
 	static_assert(TIsDefaultConstructible<ModuleClass>::Value, "Module class must be default constructible"); \
 	static TOptional<ModuleClass> Umbral_ModuleInstance;                                \
 	static constexpr FStringView Umbral_ModuleName = UM_STRINGIFY_AS_VIEW(ModuleName);  \
-	extern "C" void Umbral_OnModuleLoaded()                                             \
+	extern "C" UMBRAL_EXPORT void Umbral_OnModuleLoaded()                               \
 	{                                                                                   \
 		(void)Umbral_ModuleInstance.EmplaceValue();                                     \
 	}                                                                                   \
-	extern "C" void Umbral_OnModuleUnloaded()                                           \
+	extern "C" UMBRAL_EXPORT void Umbral_OnModuleUnloaded()                             \
 	{                                                                                   \
 		Umbral_ModuleInstance.Reset();                                                  \
 	}                                                                                   \
-	extern "C" const char* Umbral_GetModuleName()                                       \
+	extern "C" UMBRAL_EXPORT const char* Umbral_GetModuleName()                         \
 	{                                                                                   \
 		return Umbral_ModuleName.GetChars();                                            \
 	}                                                                                   \
-	extern "C" IModule* Umbral_GetModule()                                              \
+	extern "C" UMBRAL_EXPORT IModule* Umbral_GetModule()                                \
 	{                                                                                   \
 		return Umbral_ModuleInstance.GetValueAsPointer();                               \
 	}
@@ -124,7 +132,7 @@ public:
 
 #define IMPLEMENT_EDITOR_MODULE(ModuleClass, ModuleName)                        \
 	UMBRAL_IMPLEMENT_COMMON_MODULE_FUNCTIONS(ModuleClass, ModuleName)           \
-	extern "C" EModuleType Umbral_GetModuleType()                               \
+	extern "C" UMBRAL_EXPORT EModuleType Umbral_GetModuleType()                 \
 	{                                                                           \
 		return EModuleType::Editor;                                             \
 	}
@@ -150,7 +158,7 @@ public:
 
 #define IMPLEMENT_GAME_MODULE(ModuleClass, ModuleName)                          \
 	UMBRAL_IMPLEMENT_COMMON_MODULE_FUNCTIONS(ModuleClass, ModuleName)           \
-	extern "C" EModuleType Umbral_GetModuleType()                               \
+	extern "C" UMBRAL_EXPORT EModuleType Umbral_GetModuleType()                 \
 	{                                                                           \
 		return EModuleType::Game;                                               \
 	}
