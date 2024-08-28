@@ -17,6 +17,7 @@ if("${Vulkan_GLSLC_EXECUTABLE}" STREQUAL "")
 endif()
 
 set(UMBRAL_HEADER_FILES
+	"Include/Engine/ContentManager.h"
 	"Include/Engine/EditorEngine.h"
 	"Include/Engine/Engine.h"
 	"Include/Engine/EngineViewport.h"
@@ -48,6 +49,7 @@ set(UMBRAL_HEADER_FILES
 	"Include/Graphics/Shader.h"
 	"Include/Graphics/ShaderProgram.h"
 	"Include/Graphics/ShaderType.h"
+	"Include/Graphics/StaticMesh.h"
 	"Include/Graphics/StencilOperation.h"
 	"Include/Graphics/Texture.h"
 	"Include/Graphics/TextureAddressMode.h"
@@ -70,6 +72,7 @@ set(UMBRAL_HEADER_FILES
 set(UMBRAL_SOURCE_FILES
 	"Source/Engine/Application.cpp"
 	"Source/Engine/Application.h"
+	"Source/Engine/ContentManager.cpp"
 	"Source/Engine/EditorEngine.cpp"
 	"Source/Engine/Engine.cpp"
 	"Source/Engine/EngineLoop.cpp"
@@ -87,6 +90,7 @@ set(UMBRAL_SOURCE_FILES
 	"Source/Graphics/IndexBuffer.cpp"
 	"Source/Graphics/Shader.cpp"
 	"Source/Graphics/ShaderProgram.cpp"
+	"Source/Graphics/StaticMesh.cpp"
 	"Source/Graphics/SwapChain.cpp"
 	"Source/Graphics/SwapChain.h"
 	"Source/Graphics/Texture.cpp"
@@ -156,25 +160,6 @@ set(UMBRAL_VULKAN_FILES
 	"Source/Graphics/Vulkan/SwapChainVK.h"
 	"Source/Graphics/Vulkan/UmbralToVK.cpp"
 	"Source/Graphics/Vulkan/UmbralToVK.h"
-)
-
-set(UMBRAL_BGFX_FILES
-	"Source/Graphics/BGFX/AllocatorBGFX.cpp"
-	"Source/Graphics/BGFX/AllocatorBGFX.h"
-	"Source/Graphics/BGFX/GraphicsDeviceBGFX.cpp"
-	"Source/Graphics/BGFX/GraphicsDeviceBGFX.h"
-	"Source/Graphics/BGFX/IndexBufferBGFX.cpp"
-	"Source/Graphics/BGFX/IndexBufferBGFX.h"
-	"Source/Graphics/BGFX/ShaderBGFX.cpp"
-	"Source/Graphics/BGFX/ShaderBGFX.h"
-	"Source/Graphics/BGFX/ShaderProgramBGFX.cpp"
-	"Source/Graphics/BGFX/ShaderProgramBGFX.h"
-	"Source/Graphics/BGFX/SwapChainBGFX.cpp"
-	"Source/Graphics/BGFX/SwapChainBGFX.h"
-	"Source/Graphics/BGFX/UmbralToBGFX.cpp"
-	"Source/Graphics/BGFX/UmbralToBGFX.h"
-	"Source/Graphics/BGFX/VertexBufferBGFX.cpp"
-	"Source/Graphics/BGFX/VertexBufferBGFX.h"
 )
 
 set(UMBRAL_IMGUI_FILES

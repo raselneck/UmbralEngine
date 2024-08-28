@@ -1,4 +1,5 @@
 #include "Engine/Application.h"
+#include "Engine/ContentManager.h"
 #include "Engine/Engine.h"
 #include "Engine/EngineViewport.h"
 #include "Engine/EngineWindow.h"
@@ -70,4 +71,6 @@ void UEngineViewport::Created(const FObjectCreationContext& context)
 	TObjectPtr<UApplication> application = FindAncestorOfType<UApplication>();
 	m_InputManager = application->GetInputManager(m_Window);
 	m_GraphicsDevice = application->GetGraphicsDevice(m_Window);
+
+	m_ContentManager = MakeObject<UContentManager>(m_GraphicsDevice);
 }

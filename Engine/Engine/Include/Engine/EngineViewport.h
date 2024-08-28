@@ -8,6 +8,7 @@
 #include "EngineViewport.Generated.h"
 
 class UApplication;
+class UContentManager;
 class UEngine;
 class UEngineWindow;
 class UGraphicsDevice;
@@ -29,6 +30,16 @@ public:
 	 * @param gameTime Defines current game time values.
 	 */
 	virtual void Draw(const FGameTime& gameTime);
+
+	/**
+	 * @brief Gets the content manager associated with this viewport.
+	 *
+	 * @return The content manager associated with this viewport.
+	 */
+	[[nodiscard]] TObjectPtr<UContentManager> GetContentManager() const
+	{
+		return m_ContentManager;
+	}
 
 	/**
 	 * @brief Gets the engine associated with this viewport.
@@ -165,4 +176,7 @@ private:
 
 	UM_PROPERTY()
 	TObjectPtr<UInputManager> m_InputManager;
+
+	UM_PROPERTY()
+	TObjectPtr<UContentManager> m_ContentManager;
 };
