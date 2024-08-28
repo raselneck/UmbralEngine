@@ -21,7 +21,10 @@ TEST(InternationalizationTests, EstonianSorting)
 	EXPECT_FALSE(setLocaleResult.IsError());
 
 	TArray<FStringView> strings {{ Tuck, Lowe, Luck, Zebra }};
-	strings.Sort();
+	strings.Sort([](const FStringView& first, const FStringView& second)
+	{
+		return first.Compare(second, EStringComparison::CurrentCulture);
+	});
 
 	EXPECT_PRED2(StringsMatchWithCulture, strings[0], Luck);
 	EXPECT_PRED2(StringsMatchWithCulture, strings[1], Lowe);
@@ -35,7 +38,10 @@ TEST(InternationalizationTests, GermanSorting)
 	EXPECT_FALSE(setLocaleResult.IsError());
 
 	TArray<FStringView> strings {{ Tuck, Lowe, Luck, Zebra }};
-	strings.Sort();
+	strings.Sort([](const FStringView& first, const FStringView& second)
+	{
+		return first.Compare(second, EStringComparison::CurrentCulture);
+	});
 
 	EXPECT_PRED2(StringsMatchWithCulture, strings[0], Lowe);
 	EXPECT_PRED2(StringsMatchWithCulture, strings[1], Luck);
@@ -49,7 +55,10 @@ TEST(InternationalizationTests, SwedishSorting)
 	EXPECT_FALSE(setLocaleResult.IsError());
 
 	TArray<FStringView> strings {{ Tuck, Lowe, Luck, Zebra }};
-	strings.Sort();
+	strings.Sort([](const FStringView& first, const FStringView& second)
+	{
+		return first.Compare(second, EStringComparison::CurrentCulture);
+	});
 
 	EXPECT_PRED2(StringsMatchWithCulture, strings[0], Luck);
 	EXPECT_PRED2(StringsMatchWithCulture, strings[1], Lowe);

@@ -158,7 +158,7 @@ TErrorOr<ECompareResult> FInternationalization::CompareStrings(const CharSpanTyp
 		{
 		case EStringComparison::CurrentCulture:
 		case EStringComparison::InvariantCulture:
-			return UCOL_TERTIARY;
+			return UCOL_QUATERNARY;
 
 		case EStringComparison::CurrentCultureIgnoreCase:
 		case EStringComparison::InvariantCultureIgnoreCase:
