@@ -4,6 +4,7 @@
 #include "Containers/StaticArray.h"
 #include "Containers/Span.h"
 #include "Containers/String.h"
+#include "Containers/StringOrStringView.h"
 #include "Containers/StringView.h"
 
 /**
@@ -181,7 +182,7 @@ public:
 	 * @param pathParts The path parts.
 	 * @returns The joined path.
 	 */
-	[[nodiscard]] static FString Join(TSpan<FStringView> pathParts);
+	[[nodiscard]] static FString Join(TSpan<const FStringView> pathParts);
 
 	/**
 	 * @brief Joins path parts together.
@@ -190,6 +191,14 @@ public:
 	 * @returns The joined path.
 	 */
 	[[nodiscard]] static FString Join(TSpan<const FString> pathParts);
+
+	/**
+	 * @brief Joins path parts together.
+	 *
+	 * @param pathParts The path parts.
+	 * @returns The joined path.
+	 */
+	[[nodiscard]] static FString Join(TSpan<const FStringOrStringView> pathParts);
 
 	/**
 	 * @brief Joins two paths together.
@@ -231,6 +240,7 @@ public:
 	{
 		// TODO For some reason, passing in a const FString ref as an otherParts param will give us garbage data if pathParts is an array of FStringView
 
+		//TArray<FStringOrStringView> pathParts;
 		TArray<FString> pathParts;
 		pathParts.Reserve(1 + sizeof...(ArgTypes));
 

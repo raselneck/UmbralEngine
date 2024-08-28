@@ -1,5 +1,6 @@
-#include "Misc/StringBuilder.h"
 #include "Containers/InternalString.h"
+#include "Containers/StringOrStringView.h"
+#include "Misc/StringBuilder.h"
 
 FStringBuilder::CharType* FStringBuilder::AddZeroed(const SizeType numChars)
 {
@@ -16,6 +17,11 @@ FStringBuilder& FStringBuilder::Append(const FString& string)
 {
 	m_Chars.Append(string.AsSpan());
 	return *this;
+}
+
+FStringBuilder& FStringBuilder::Append(const FStringOrStringView& stringOrStringView)
+{
+	return Append(stringOrStringView.AsStringView());
 }
 
 FStringBuilder& FStringBuilder::Append(const FStringView stringView)

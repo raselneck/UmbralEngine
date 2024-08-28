@@ -263,7 +263,7 @@ bool FPath::IsRelative(const FStringView path)
 }
 
 template<typename StringType>
-static FString JoinPathPartsImpl(TSpan<StringType> pathParts)
+static FString JoinPathPartsImpl(const TSpan<const StringType>& pathParts)
 {
 	if (pathParts.IsEmpty())
 	{
@@ -280,7 +280,7 @@ static FString JoinPathPartsImpl(TSpan<StringType> pathParts)
 			builder.Append('/');
 		}
 
-		FStringView pathPartToAdd = pathParts[idx];
+		FStringView pathPartToAdd = static_cast<FStringView>(pathParts[idx]);
 		while (pathPartToAdd.Length() > 0 && FPath::IsDirectorySeparator(pathPartToAdd[0]))
 		{
 			pathPartToAdd = pathPartToAdd.RemoveLeft(1);
@@ -297,12 +297,17 @@ static FString JoinPathPartsImpl(TSpan<StringType> pathParts)
 	return builder.ReleaseString();
 }
 
-FString FPath::Join(const TSpan<FStringView> pathParts)
+FString FPath::Join(const TSpan<const FStringView> pathParts)
 {
 	return JoinPathPartsImpl(pathParts);
 }
 
 FString FPath::Join(const TSpan<const FString> pathParts)
+{
+	return JoinPathPartsImpl(pathParts);
+}
+
+FString FPath::Join(const TSpan<const FStringOrStringView> pathParts)
 {
 	return JoinPathPartsImpl(pathParts);
 }
