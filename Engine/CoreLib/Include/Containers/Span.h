@@ -185,7 +185,7 @@ public:
 	 */
 	[[nodiscard]] constexpr bool IsEmpty() const
 	{
-		return m_NumElements == 0;
+		return m_Data == nullptr || m_NumElements == 0;
 	}
 
 	/**
