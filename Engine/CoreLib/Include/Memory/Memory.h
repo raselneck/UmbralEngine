@@ -67,8 +67,8 @@ public:
 	 * @param args The arguments to pass along to the object's constructor.
 	 * @return A pointer to the allocated object.
 	 */
-	template<typename ElementType, typename ... ConstructTypes>
-	[[nodiscard]] static ElementType* AllocateObject(ConstructTypes&& ... args)
+	template<typename ElementType, typename... ConstructTypes>
+	[[nodiscard]] static ElementType* AllocateObject(ConstructTypes... args)
 	{
 		void* objectMemory = Allocate(sizeof(ElementType));
 		ConstructObjectAt<ElementType, ConstructTypes...>(objectMemory, Forward<ConstructTypes>(args) ...);
@@ -83,8 +83,8 @@ public:
 	 * @param args The arguments to pass along to the object's constructor.
 	 * @return A pointer to the allocated object.
 	 */
-	template<typename ElementType, typename ... ConstructTypes>
-	static ElementType ConstructObject(ConstructTypes&& ... args)
+	template<typename ElementType, typename... ConstructTypes>
+	static ElementType ConstructObject(ConstructTypes... args)
 	{
 		ElementType value { Forward<ConstructTypes>(args)... };
 		return MoveTemp(value);
@@ -99,8 +99,8 @@ public:
 	 * @param args The arguments to pass along to the object's constructor.
 	 * @return A pointer to the allocated object.
 	 */
-	template<typename ElementType, typename ... ConstructTypes>
-	static void ConstructObjectAt(void* objectMemory, ConstructTypes&& ... args)
+	template<typename ElementType, typename... ConstructTypes>
+	static void ConstructObjectAt(void* objectMemory, ConstructTypes... args)
 	{
 		if constexpr (IsZeroConstructible<ElementType> && sizeof...(args) == 0)
 		{
