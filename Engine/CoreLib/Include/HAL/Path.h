@@ -236,17 +236,14 @@ public:
 	 * @return The joined path.
 	 */
 	template<typename... ArgTypes>
-	[[nodiscard]] static FString Join(FStringView firstPath, ArgTypes&&... otherParts)
+	[[nodiscard]] static FString Join(FStringView firstPath, ArgTypes... otherParts)
 	{
-		// TODO For some reason, passing in a const FString ref as an otherParts param will give us garbage data if pathParts is an array of FStringView
-
-		//TArray<FStringOrStringView> pathParts;
-		TArray<FString> pathParts;
+		TArray<FStringOrStringView> pathParts;
 		pathParts.Reserve(1 + sizeof...(ArgTypes));
 
 		(void)pathParts.Emplace(firstPath);
 
-		TVariadicForEach<ArgTypes...>::Visit([&](const auto& value)
+		TVariadicForEach<ArgTypes...>::Visit([&](auto value)
 		{
 			(void)pathParts.Emplace(value);
 			return EIterationDecision::Continue;

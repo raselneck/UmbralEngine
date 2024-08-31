@@ -77,7 +77,7 @@
     <StringView>m_Major.m_Minor.m_Patch.m_Build</StringView>
   </Type>
 
-  <!-- FObjectHeader visualizer -->
+  <!-- FObjectHeader -->
   <Type Name="FObjectHeader">
     <Intrinsic Name="IsValid" Expression="m_AllocationTime.m_Ticks != 0" />
     <DisplayString Condition="IsValid()">{(UObject*)(((uint8_t*)this) + sizeof(FObjectHeader))}</DisplayString>
@@ -87,7 +87,7 @@
     </Expand>
   </Type>
 
-  <!-- FObjectPtr visualizer -->
+  <!-- FObjectPtr -->
   <Type Name="FObjectPtr">
     <Intrinsic Name="IsValid" Expression="m_ObjectHash != INVALID_HASH &amp;&amp; m_ObjectHeader != nullptr &amp;&amp; m_ObjectHeader->m_AllocationTime.m_Ticks != 0" />
     <DisplayString Condition="IsValid()">{(UObject*)(((uint8_t*)m_ObjectHeader) + sizeof(FObjectHeader))}</DisplayString>
@@ -97,13 +97,32 @@
     </Expand>
   </Type>
 
-  <!-- TObjectPtr visualizer -->
+  <!-- TObjectPtr -->
   <Type Name="TObjectPtr&lt;*&gt;">
     <Intrinsic Name="IsValid" Expression="m_ObjectHash != INVALID_HASH &amp;&amp; m_ObjectHeader != nullptr &amp;&amp; m_ObjectHeader->m_AllocationTime.m_Ticks != 0" />
     <DisplayString Condition="IsValid()">{($T1*)(((uint8_t*)m_ObjectHeader) + sizeof(FObjectHeader))}</DisplayString>
     <DisplayString>nullptr</DisplayString>
     <Expand>
       <ExpandedItem Condition="IsValid()">(($T1*)(((uint8_t*)m_ObjectHeader) + sizeof(FObjectHeader)))</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- TVariant -->
+  <Type Name="TVariant&lt;*&gt;">
+    <DisplayString>{*($T1*)(m_ValueStorage.m_Data)}</DisplayString>
+    <Expand>
+      <Item Name="m_ValueStorage" Condition="m_ValueIndex == 0">*($T1*)(m_ValueStorage.m_Data)</Item>
+      <Item Name="m_ValueStorage">&lt;too many types&gt;</Item>
+      <Item Name="m_ValueIndex">m_ValueIndex</Item>
+    </Expand>
+  </Type>
+  <Type Name="TVariant&lt;*,*&gt;">
+    <DisplayString Condition="m_ValueIndex == 1">{*($T2*)(m_ValueStorage.m_Data)}</DisplayString>
+    <DisplayString>{*($T1*)(m_ValueStorage.m_Data)}</DisplayString>
+    <Expand>
+      <Item Name="m_ValueStorage" Condition="TypeIndex == 1">{*($T2*)(m_ValueStorage.m_Data)}</Item>
+      <Item Name="m_ValueStorage">{*($T1*)(m_ValueStorage.m_Data)}</Item>
+      <Item Name="m_ValueIndex">m_ValueIndex</Item>
     </Expand>
   </Type>
 
