@@ -15,6 +15,11 @@ FObjectPtr::FObjectPtr(UObject* object)
 	m_ObjectHash = object->GetHash();
 }
 
+FObjectPtr::FObjectPtr(const UObject* object)
+	: FObjectPtr(const_cast<UObject*>(object))
+{
+}
+
 UObject* FObjectPtr::GetObject() const
 {
 	if (m_ObjectHeader != nullptr &&

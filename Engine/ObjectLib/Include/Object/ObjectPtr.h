@@ -42,6 +42,13 @@ public:
 	FObjectPtr(UObject* object);
 
 	/**
+	 * @brief Creates an object pointer directly from an object.
+	 *
+	 * @param object The object pointer.
+	 */
+	FObjectPtr(const UObject* object);
+
+	/**
 	 * @brief Destroys this object pointer.
 	 */
 	virtual ~FObjectPtr() = default; // TODO Necessary to be virtual?
