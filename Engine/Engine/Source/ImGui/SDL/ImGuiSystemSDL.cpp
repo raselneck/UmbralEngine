@@ -651,6 +651,11 @@ void UImGuiSystemSDL::Destroyed()
 
 static TObjectPtr<UEngineWindowSDL> GetWindowFromViewport(ImGuiViewport* viewport)
 {
+	[[unlikely]] if (viewport->PlatformUserData == nullptr)
+	{
+		return nullptr;
+	}
+
 	return { static_cast<UEngineWindowSDL*>(viewport->PlatformUserData) };
 }
 
@@ -690,6 +695,11 @@ static void ImGuiCreateWindow(ImGuiViewport* viewport)
 static void ImGuiDestroyWindow(ImGuiViewport* viewport)
 {
 	TObjectPtr<UEngineWindowSDL> engineWindow = GetWindowFromViewport(viewport);
+	[[unlikely]] if (UM_ENSURE(engineWindow.IsValid()) == false) // TODO(HACK) Fix the cause of this :^) (repro by pressing Escape to close game)
+	{
+		return;
+	}
+
 	TObjectPtr<UApplicationSDL> application = Cast<UApplicationSDL>(engineWindow->GetApplication());
 	application->DestroyRenderingContext(engineWindow);
 

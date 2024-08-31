@@ -123,7 +123,10 @@ void UEngineLoopSDL::PollEvents()
 #endif
 
 			const TObjectPtr<UInputManagerSDL> inputManager = m_Application->GetInputManagerFromWindowId(event.key.windowID);
-			inputManager->ProcessKeyUpEvent(event.key);
+			[[likely]] if (UM_ENSURE(inputManager.IsValid())) // TODO(HACK) Fix the cause of this issue :^) (repro by pressing Escape to close game)
+			{
+				inputManager->ProcessKeyUpEvent(event.key);
+			}
 
 			break;
 		}
