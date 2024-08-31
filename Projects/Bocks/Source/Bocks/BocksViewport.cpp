@@ -1,4 +1,5 @@
 #include "Bocks/BocksViewport.h"
+#include "Engine/ContentManager.h"
 #include "Engine/Engine.h"
 #include "Engine/EngineWindow.h"
 #include "Engine/Logging.h"
@@ -6,10 +7,12 @@
 #include "Graphics/Image.h"
 #include "Graphics/IndexBuffer.h"
 #include "Graphics/ShaderProgram.h"
+#include "Graphics/StaticMesh.h"
 #include "Graphics/Vertex.h"
 #include "Graphics/VertexBuffer.h"
 #include "ImGui/ImGui.h"
 #include "HAL/Directory.h"
+#include "HAL/File.h"
 #include "HAL/Path.h"
 #include "Math/Matrix4.h"
 #include "Math/Vector3.h"
@@ -97,6 +100,13 @@ void UBocksViewport::Created(const FObjectCreationContext& context)
 	UM_ENSURE(m_Program->SetMatrix4("projectionMatrix"_sv, projectionMatrix));
 	UM_ENSURE(m_Program->SetMatrix4("viewMatrix"_sv, viewMatrix));
 	UM_ENSURE(m_Program->SetMatrix4("worldMatrix"_sv, FMatrix4::Identity));
+
+	TObjectPtr<UContentManager> contentManager = GetContentManager();
+	TObjectPtr<UStaticMesh> cerberusMesh = contentManager->Load<UStaticMesh>("Cerberus/Cerberus_LP.FBX"_sv);
+	if (cerberusMesh.IsNull())
+	{
+		UM_LOG(Warning, "Failed to load Cerberus mesh");
+	}
 }
 
 TErrorOr<void> UBocksViewport::InitializePositionColorCube(const TObjectPtr<UGraphicsDevice>& graphicsDevice)
