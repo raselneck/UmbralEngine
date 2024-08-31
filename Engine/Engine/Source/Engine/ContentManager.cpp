@@ -10,8 +10,8 @@ TObjectPtr<UStaticMesh> UContentManager::LoadStaticMesh(const FStringView assetP
 	const FString contentDir = FDirectory::GetContentDir();
 	const FString fullAssetPath = FPath::Join(contentDir, assetPath);
 
-	TObjectPtr<UStaticMesh> staticMesh = MakeObject<UStaticMesh>(GetGraphicsDevice());
-	if (TErrorOr<void> loadResult = staticMesh->LoadFromFile({}, fullAssetPath);
+	TObjectPtr<UStaticMesh> staticMesh = MakeObject<UStaticMesh>(this);
+	if (TErrorOr<void> loadResult = staticMesh->LoadFromFile(fullAssetPath);
 	    loadResult.IsError())
 	{
 		UM_LOG(Error, "Failed to load static mesh \"{}\". Reason: {}", fullAssetPath, loadResult.GetError().GetMessage());

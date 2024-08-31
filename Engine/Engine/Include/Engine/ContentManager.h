@@ -59,7 +59,7 @@ namespace Private
 	template<> \
 	struct FContentManagerLoadDispatcher<TypeName> \
 	{ \
-		[[nodiscard]] static TObjectPtr<TypeName> Load(UContentManager* contentManager, const FStringView assetPath) \
+		[[nodiscard]] static TObjectPtr<TypeName> Load(const UContentManager* contentManager, const FStringView assetPath) \
 		{ \
 			return contentManager->Load##FunctionName(assetPath); \
 		} \
