@@ -4,6 +4,8 @@
 #include "StaticMesh.Generated.h"
 
 class UContentManager;
+class UIndexBuffer;
+class UVertexBuffer;
 
 /**
  * @brief Defines a static mesh.
@@ -33,10 +35,27 @@ private:
 	[[nodiscard]] TErrorOr<void> LoadFromFile(const FString& filePath);
 
 	/**
+	 * @brief Loads static mesh data from memory.
+	 *
+	 * @param bytes The mesh bytes.
+	 * @param numBytes The number of mesh bytes.
+	 * @param fileName The name of the mesh file, used as a hint to determine the type of importer to use.
+	 * @return The error encountered while loading the static mesh, otherwise nothing.
+	 */
+	[[nodiscard]] TErrorOr<void> LoadFromMemory(const void* bytes, int32 numBytes, FStringView fileName);
+
+	/**
 	 * @brief Loads static mesh data from an assimp scene.
 	 *
 	 * @param scene The scene.
+	 * @param fileName The name of the file that the scene was loaded from.
 	 * @return The error encountered while loading static mesh data from the scene, otherwise nothing.
 	 */
-	[[nodiscard]] TErrorOr<void> LoadFromScene(const struct aiScene* scene);
+	[[nodiscard]] TErrorOr<void> LoadFromScene(const struct aiScene* scene, FStringView fileName);
+
+	UM_PROPERTY()
+	TObjectPtr<UVertexBuffer> m_VertexBuffer;
+
+	UM_PROPERTY()
+	TObjectPtr<UIndexBuffer> m_IndexBuffer;
 };
