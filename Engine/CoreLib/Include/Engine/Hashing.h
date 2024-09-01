@@ -342,7 +342,8 @@ inline uint64 HashItems(const FirstType& firstValue, const OtherTypes&... otherV
 	TVariadicForEach<OtherTypes...>::Visit([&](const auto& value)
 	{
 		hash = Private::HashCombine(hash, GetHashCode(value));
-	}, Forward<OtherTypes>(otherValues)...);
+		return EIterationDecision::Continue;
+	}, otherValues...);
 
 	return hash;
 }
