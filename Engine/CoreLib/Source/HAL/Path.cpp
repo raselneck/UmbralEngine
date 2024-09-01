@@ -188,6 +188,36 @@ FStringView FPath::GetFileNameAsView(const FStringView path)
 	return path.Right(path.Length() - lastSlashIndex - 1);
 }
 
+FStringView FPath::GetTemporaryNullTerminatedStringView(const FStringView path)
+{
+	using CharType = FStringView::CharType;
+
+	static constexpr FStringView::SizeType maxNonAllocatingLength = 2048;
+	static thread_local CharType nonAllocatingBuffer[maxNonAllocatingLength];
+	static thread_local TArray<CharType> allocatingBuffer;
+
+	if (path.IsEmpty() || path.IsNullTerminated())
+	{
+		return path;
+	}
+
+	FMemory::ZeroOutArray(nonAllocatingBuffer);
+	allocatingBuffer.Reset();
+
+	[[likely]] if (path.Length() < maxNonAllocatingLength)
+	{
+		FMemory::Copy(nonAllocatingBuffer, path.GetChars(), path.Length() * sizeof(CharType));
+
+		return FStringView { nonAllocatingBuffer, path.Length() };
+	}
+
+	allocatingBuffer.Reserve(path.Length() + 1);
+	allocatingBuffer.Append(path.GetChars(), path.Length());
+	allocatingBuffer.Add(FStringView::CharTraitsType::NullChar);
+
+	return FStringView { allocatingBuffer.AsSpan() };
+}
+
 bool FPath::HasIllegalCharacter(const FStringView path)
 {
 	// TODO Use FStringView::ContainsByPredicate when that exists

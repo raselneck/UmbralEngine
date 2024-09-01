@@ -94,6 +94,19 @@ public:
 	[[nodiscard]] static FStringView GetFileNameAsView(FStringView path);
 
 	/**
+	 * @brief Gets a temporary null-terminated string view.
+	 *
+	 * The string view returned by this function will be a valid copy of \p value until the next
+	 * time that this function is called on the same thread. The string view is guaranteed to be
+	 * null-terminated, so it will be suitable to be provided to native file system functions
+	 * that expect a null-terminated, raw C string.
+	 *
+	 * @param path The path to get a temporary null-terminated string view of.
+	 * @return The null-terminated string view.
+	 */
+	[[nodiscard]] static FStringView GetTemporaryNullTerminatedStringView(FStringView path);
+
+	/**
 	 * @brief Checks to see if the given path contains any illegal characters.
 	 *
 	 * @param path The path to check.
