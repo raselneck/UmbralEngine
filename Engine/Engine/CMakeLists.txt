@@ -304,6 +304,8 @@ umbral_compile_shaders(
 		"${UMBRAL_SHADER_DIR}/VertexPosition.vert"
 		"${UMBRAL_SHADER_DIR}/VertexPositionColor.frag"
 		"${UMBRAL_SHADER_DIR}/VertexPositionColor.vert"
+		"${UMBRAL_SHADER_DIR}/VertexPositionNormalTexture.vert"
+		"${UMBRAL_SHADER_DIR}/VertexPositionNormalTexture.frag"
 		"${UMBRAL_SHADER_DIR}/VertexPositionTexture.frag"
 		"${UMBRAL_SHADER_DIR}/VertexPositionTexture.vert"
 )

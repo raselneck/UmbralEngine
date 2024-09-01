@@ -363,7 +363,7 @@ TErrorOr<void> UStaticMesh::LoadFromMemory(const void* bytes, const int32 numByt
 
 	// TODO Make some of the import flags configurable
 	Assimp::Importer importer;
-	constexpr uint32 importFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices;
+	constexpr uint32 importFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals /*| aiProcess_FlipUVs*/ | aiProcess_JoinIdenticalVertices;
 	const FStringView fileHint = FPath::GetTemporaryNullTerminatedStringView(fileName);
 	const aiScene* importedScene = importer.ReadFileFromMemory(bytes, static_cast<size_t>(numBytes), importFlags, fileHint.GetChars());
 	if (importedScene == nullptr)

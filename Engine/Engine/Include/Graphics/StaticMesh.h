@@ -17,6 +17,30 @@ class UStaticMesh final : public UGraphicsResource
 
 	UM_GENERATED_BODY();
 
+public:
+
+	// TODO Make both of these getters return TObjectPtr<const ...>
+
+	/**
+	 * @brief Gets this mesh's index buffer.
+	 *
+	 * @return This mesh's index buffer.
+	 */
+	[[nodiscard]] TObjectPtr<UIndexBuffer> GetIndexBuffer() const
+	{
+		return m_IndexBuffer;
+	}
+
+	/**
+	 * @brief Gets this mesh's vertex buffer.
+	 *
+	 * @return This mesh's vertex buffer.
+	 */
+	[[nodiscard]] TObjectPtr<UVertexBuffer> GetVertexBuffer() const
+	{
+		return m_VertexBuffer;
+	}
+
 private:
 
 	/**

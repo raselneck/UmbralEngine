@@ -12,16 +12,16 @@
 #include "Graphics/VertexBuffer.h"
 #include "ImGui/ImGui.h"
 #include "HAL/Directory.h"
-#include "HAL/File.h"
 #include "HAL/Path.h"
 #include "Math/Matrix4.h"
 #include "Math/Vector3.h"
 
-#define CUBE_POSITION_COLOR             1
-#define CUBE_POSITION_COLOR_NORMAL      2
-#define CUBE_POSITION_TEXTURE           3
-#define CUBE_POSITION_TEXTURE_NORMAL    4
-#define CUBE_MODE                       CUBE_POSITION_TEXTURE
+#define MESH_POSITION_COLOR             1
+#define MESH_POSITION_COLOR_NORMAL      2
+#define MESH_POSITION_TEXTURE           3
+#define MESH_POSITION_TEXTURE_NORMAL    4
+#define MESH_FROM_CERBERUS_MESH         5
+#define MESH_MODE                       MESH_FROM_CERBERUS_MESH
 
 void UBocksViewport::Draw(const FGameTime& gameTime)
 {
@@ -68,7 +68,13 @@ void UBocksViewport::Update(const FGameTime& gameTime)
 	}
 
 	const float totalTime = gameTime.GetTotalSeconds();
-	const FMatrix4 worldMatrix = FMatrix4::CreateFromAxisAngle(FVector3::Up + FVector3::Right, totalTime * 0.8f);
+#if MESH_MODE == MESH_FROM_CERBERUS_MESH
+	const FMatrix4 worldMatrix = FMatrix4::CreateTranslation(0.0f, 65.0f, 1.0f) *
+	                             FMatrix4::CreateFromAxisAngle(FVector3::Up + FVector3::Right, totalTime) *
+	                             FMatrix4::CreateScale(0.01f, 0.01f, 0.01f);
+#else
+	const FMatrix4 worldMatrix = FMatrix4::CreateScale(0.01f, 0.01f, 0.01f) * FMatrix4::CreateFromAxisAngle(FVector3::Up + FVector3::Right, totalTime * 0.8f);
+#endif
 	(void)m_Program->SetMatrix4("worldMatrix"_sv, worldMatrix);
 }
 
@@ -79,18 +85,63 @@ void UBocksViewport::Created(const FObjectCreationContext& context)
 	const TObjectPtr<UGraphicsDevice> graphicsDevice = GetGraphicsDevice();
 	UM_ENSURE(graphicsDevice.IsValid());
 
-#if CUBE_MODE == CUBE_POSITION_COLOR
+#if MESH_MODE == MESH_POSITION_COLOR
 	InitializePositionColorShaderProgram(graphicsDevice);
 	InitializePositionColorCube(graphicsDevice);
-#elif CUBE_MODE == CUBE_POSITION_TEXTURE
+#elif MESH_MODE == MESH_POSITION_TEXTURE
 	InitializePositionTextureShaderProgram(graphicsDevice);
 	InitializePositionTextureCube(graphicsDevice);
+#elif MESH_MODE == MESH_FROM_CERBERUS_MESH
+	TObjectPtr<UContentManager> contentManager = GetContentManager();
+	TObjectPtr<UStaticMesh> cerberusMesh = contentManager->Load<UStaticMesh>("Cerberus/Cerberus_LP.FBX"_sv);
+	if (cerberusMesh.IsNull())
+	{
+		UM_LOG(Fatal, "Failed to load Cerberus mesh");
+	}
+
+	m_VertexBuffer = cerberusMesh->GetVertexBuffer();
+	m_IndexBuffer = cerberusMesh->GetIndexBuffer();
+
+	TObjectPtr<UShader> vertexShader = graphicsDevice->CreateShader(EShaderType::Vertex);
+	const FString vertexShaderPath = FDirectory::GetContentFilePath("Shaders"_sv, "VertexPositionNormalTexture.vert.spv"_sv);
+	if (TErrorOr<void> loadResult = vertexShader->LoadFromFile(vertexShaderPath, EShaderFileType::Binary);
+	    loadResult.IsError())
+	{
+		UM_LOG(Fatal, "Failed to load vertex shader \"{}\". Reason: {}", FPath::GetBaseFileName(vertexShaderPath), loadResult.GetError().GetMessage());
+	}
+
+	TObjectPtr<UShader> fragmentShader = graphicsDevice->CreateShader(EShaderType::Fragment);
+	const FString fragmentShaderPath = FDirectory::GetContentFilePath("Shaders"_sv, "VertexPositionNormalTexture.frag.spv"_sv);
+	if (TErrorOr<void> loadResult = fragmentShader->LoadFromFile(fragmentShaderPath, EShaderFileType::Binary);
+	    loadResult.IsError())
+	{
+		UM_LOG(Fatal, "Failed to load fragment shader \"{}\". Reason: {}", FPath::GetBaseFileName(fragmentShaderPath), loadResult.GetError().GetMessage());
+	}
+
+	m_Program = graphicsDevice->CreateShaderProgram();
+	(void)m_Program->AttachShader(MoveTemp(vertexShader));
+	(void)m_Program->AttachShader(MoveTemp(fragmentShader));
+
+	if (TErrorOr<void> linkResult = m_Program->Link();
+	    linkResult.IsError())
+	{
+		UM_LOG(Fatal, "Failed to link shaders. Reason: {}", linkResult.GetError().GetMessage());
+	}
+
+	FImage textureImage;
+	const FString texturePath = FDirectory::GetContentFilePath("Cerberus"_sv, "Textures"_sv, "Cerberus_A.png"_sv);
+	if (TErrorOr<void> loadResult = textureImage.LoadFromFile(texturePath);
+	    loadResult.IsError())
+	{
+		UM_LOG(Fatal, "Failed to load texture \"{}\". Reason: {}", FPath::GetBaseFileName(texturePath), loadResult.GetError().GetMessage());
+	}
+
+	m_Texture = graphicsDevice->CreateTexture2D();
+	m_Texture->SetDataFromImage(textureImage, EGenerateMipMaps::Yes);
+	(void)m_Program->SetTexture2D("diffuseTexture"_sv, m_Texture);
 #endif
 
-	if (m_Program.IsNull())
-	{
-		return;
-	}
+	UM_ENSURE(m_Program.IsValid());
 
 	const FMatrix4 projectionMatrix = FMatrix4::CreatePerspectiveFieldOfView(FMath::ToRadians(90.0f), 16.0f / 9.0f, 0.1f, 100.0f);
 	const FMatrix4 viewMatrix = FMatrix4::CreateLookAt({ 0.0f, 0.0f, -0.45f },
@@ -100,13 +151,6 @@ void UBocksViewport::Created(const FObjectCreationContext& context)
 	UM_ENSURE(m_Program->SetMatrix4("projectionMatrix"_sv, projectionMatrix));
 	UM_ENSURE(m_Program->SetMatrix4("viewMatrix"_sv, viewMatrix));
 	UM_ENSURE(m_Program->SetMatrix4("worldMatrix"_sv, FMatrix4::Identity));
-
-	TObjectPtr<UContentManager> contentManager = GetContentManager();
-	TObjectPtr<UStaticMesh> cerberusMesh = contentManager->Load<UStaticMesh>("Cerberus/Cerberus_LP.FBX"_sv);
-	if (cerberusMesh.IsNull())
-	{
-		UM_LOG(Warning, "Failed to load Cerberus mesh");
-	}
 }
 
 TErrorOr<void> UBocksViewport::InitializePositionColorCube(const TObjectPtr<UGraphicsDevice>& graphicsDevice)
