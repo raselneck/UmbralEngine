@@ -35,14 +35,14 @@ public:
 	 *
 	 * @param indexBuffer The index buffer.
 	 */
-	virtual void BindIndexBuffer(TObjectPtr<UIndexBuffer> indexBuffer);
+	virtual void BindIndexBuffer(TObjectPtr<const UIndexBuffer> indexBuffer);
 
 	/**
 	 * @brief Binds the given vertex buffer.
 	 *
 	 * @param vertexBuffer The vertex buffer.
 	 */
-	virtual void BindVertexBuffer(TObjectPtr<UVertexBuffer> vertexBuffer);
+	virtual void BindVertexBuffer(TObjectPtr<const UVertexBuffer> vertexBuffer);
 
 	/**
 	 * @brief Clears the currently bound color buffer.

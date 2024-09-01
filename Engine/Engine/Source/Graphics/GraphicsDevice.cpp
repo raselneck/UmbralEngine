@@ -2,13 +2,13 @@
 #include "Graphics/GraphicsDevice.h"
 #include "Graphics/Image.h"
 
-void UGraphicsDevice::BindIndexBuffer(const TObjectPtr<UIndexBuffer> indexBuffer)
+void UGraphicsDevice::BindIndexBuffer(const TObjectPtr<const UIndexBuffer> indexBuffer)
 {
 	(void)indexBuffer;
 	UM_ASSERT_NOT_REACHED();
 }
 
-void UGraphicsDevice::BindVertexBuffer(const TObjectPtr<UVertexBuffer> vertexBuffer)
+void UGraphicsDevice::BindVertexBuffer(const TObjectPtr<const UVertexBuffer> vertexBuffer)
 {
 	(void)vertexBuffer;
 	UM_ASSERT_NOT_REACHED();

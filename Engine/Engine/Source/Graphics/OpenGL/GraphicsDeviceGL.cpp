@@ -44,7 +44,7 @@ namespace GL
 	}
 }
 
-void UGraphicsDeviceGL::BindIndexBuffer(const TObjectPtr<UIndexBuffer> indexBuffer)
+void UGraphicsDeviceGL::BindIndexBuffer(const TObjectPtr<const UIndexBuffer> indexBuffer)
 {
 	GLuint bufferHandle = 0;
 
@@ -61,14 +61,14 @@ void UGraphicsDeviceGL::BindIndexBuffer(const TObjectPtr<UIndexBuffer> indexBuff
 	GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferHandle));
 }
 
-void UGraphicsDeviceGL::BindVertexBuffer(const TObjectPtr<UVertexBuffer> vertexBuffer)
+void UGraphicsDeviceGL::BindVertexBuffer(const TObjectPtr<const UVertexBuffer> vertexBuffer)
 {
 	GLuint arrayHandle = 0;
 	GLuint bufferHandle = 0;
 
 	if (vertexBuffer.IsValid())
 	{
-		m_BoundVertexBuffer = CastChecked<UVertexBufferGL>(vertexBuffer);
+		m_BoundVertexBuffer = CastChecked<const UVertexBufferGL>(vertexBuffer);
 		arrayHandle = m_BoundVertexBuffer->GetArrayHandle();
 		bufferHandle = m_BoundVertexBuffer->GetBufferHandle();
 	}

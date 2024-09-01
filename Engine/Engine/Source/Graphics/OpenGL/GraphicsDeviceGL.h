@@ -21,10 +21,10 @@ class UGraphicsDeviceGL final : public UGraphicsDevice
 public:
 
 	/** @copydoc UGraphicsDevice::BindIndexBuffer */
-	virtual void BindIndexBuffer(TObjectPtr<UIndexBuffer> indexBuffer) override;
+	virtual void BindIndexBuffer(TObjectPtr<const UIndexBuffer> indexBuffer) override;
 
 	/** @copydoc UGraphicsDevice::BindVertexBuffer */
-	virtual void BindVertexBuffer(TObjectPtr<UVertexBuffer> vertexBuffer) override;
+	virtual void BindVertexBuffer(TObjectPtr<const UVertexBuffer> vertexBuffer) override;
 
 	/** @copydoc UGraphicsDevice::Clear */
 	virtual void Clear(EClearOptions clearOptions, const FLinearColor& color, float depth, int32 stencil) override;
@@ -107,10 +107,10 @@ private:
 	TObjectPtr<UTextureManagerGL> m_TextureManager;
 
 	UM_PROPERTY()
-	TObjectPtr<UIndexBufferGL> m_BoundIndexBuffer;
+	TObjectPtr<const UIndexBufferGL> m_BoundIndexBuffer;
 
 	UM_PROPERTY()
-	TObjectPtr<UVertexBufferGL> m_BoundVertexBuffer;
+	TObjectPtr<const UVertexBufferGL> m_BoundVertexBuffer;
 
 	void* m_Context = nullptr;
 
