@@ -8,13 +8,7 @@ IEventTask::~IEventTask()
 	if (eventLoop.IsNull())
 	{
 		UM_LOG(Error, "Event task is being destroyed AFTER its event loop!");
-		return;
 	}
-
-	constexpr TBadge<IEventTask> badge;
-	eventLoop->RemoveTask(badge, this);
-
-	m_EventLoop.Reset();
 }
 
 TSharedPtr<FEventLoop> IEventTask::GetEventLoop() const
@@ -79,10 +73,23 @@ void FEventLoop::PollTasks()
 
 	// Run the loop once without waiting for a task to be added if there are none
 	uv_run(m_Loop.Get(), UV_RUN_NOWAIT);
+
+	m_Tasks.RemoveByPredicate([](const TSharedPtr<IEventTask>& task)
+	{
+		return task->IsRunning() == false;
+	});
 }
 
 void FEventLoop::RegisterTask(TSharedPtr<IEventTask> task)
 {
+	if (task.IsNull())
+	{
+		return;
+	}
+
+	constexpr TBadge<FEventLoop> badge;
+	task->SetEventLoop(badge, AsShared());
+
 	m_Tasks.Add(MoveTemp(task));
 }
 

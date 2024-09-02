@@ -1,5 +1,7 @@
-#include "HAL/File.h"
+#include "Containers/StaticArray.h"
 #include "Engine/Logging.h"
+#include "HAL/File.h"
+#include "HAL/EventLoop.h"
 #include "HAL/FileSystem.h"
 #include "Misc/StringBuilder.h"
 #include "Templates/NumericLimits.h"
@@ -10,6 +12,7 @@
 #else
 #	include "HAL/Linux/LinuxFileSystem.h"
 #endif
+#include <uv.h>
 
 /**
  * @brief The maximum length for a file that we can read.
@@ -158,6 +161,233 @@ TErrorOr<FString> FFile::ReadText(FStringView fileName)
 	}*/
 
 	return textBuilder.ReleaseString();
+}
+
+/**
+ * @brief Defines an async task for reading a file as text.
+ */
+class FReadFileTextTask : public IEventTask
+{
+	struct FRequestDestructor
+	{
+		void Delete(uv_fs_t* handle)
+		{
+			uv_fs_req_cleanup(handle);
+			FMemory::Free(handle);
+		}
+	};
+
+	struct FRequestData
+	{
+		TStaticArray<uint8, 4096> BufferData;
+		uv_buf_t Buffer;
+
+		/**
+		 * @brief Initializes Buffer to point to BufferData.
+		 */
+		FRequestData()
+		{
+			uv_buf_init(reinterpret_cast<char*>(BufferData.GetData()), static_cast<uint32>(BufferData.Num()));
+		}
+	};
+
+	using FRequestHandle = TUniquePtr<uv_fs_t, FRequestDestructor>;
+	using FRequestDataHandle = TUniquePtr<FRequestData>;
+
+public:
+
+	/**
+	 * @brief Sets default values for this task's properties.
+	 *
+	 * @param callback The function to call when complete.
+	 * @param errorCallback The function to call when an error is encountered.
+	 */
+	FReadFileTextTask(FFile::FReadTextCallback callback, FFile::FReadErrorCallback errorCallback)
+		: m_CompleteCallback { MoveTemp(callback) }
+		, m_ErrorCallback { MoveTemp(errorCallback) }
+	{
+	}
+
+	/**
+	 * @brief Destroys this file read task.
+	 */
+	virtual ~FReadFileTextTask() override = default;
+
+	/** @inheritdoc IEventTask::IsRunning */
+	[[nodiscard]] virtual bool IsRunning() const override
+	{
+		return m_FilePath.Length() > 0 || m_FileHandle != INDEX_NONE;
+	}
+
+	/**
+	 * @brief Starts asynchronously reading a file.
+	 *
+	 * @param filePath The path to the file.
+	 */
+	void StartReadingFile(const FStringView filePath)
+	{
+		m_FilePath = FString { filePath };
+		m_OpenRequest = MakeRequest(this);
+
+		uv_loop_t* loop = GetEventLoop()->GetLoop();
+		uv_fs_open(loop, m_OpenRequest.Get(), m_FilePath.GetChars(), UV_FS_O_RDONLY, 0, DispatchRequest<&FReadFileTextTask::OnOpen>);
+	}
+
+private:
+
+	/**
+	 * @brief Dispatches a libuv request.
+	 *
+	 * @tparam Callback The member function callback.
+	 * @param handle The request handle.
+	 */
+	template<void(FReadFileTextTask::*Callback)()>
+	static void DispatchRequest(uv_fs_t* handle)
+	{
+		FReadFileTextTask* task = reinterpret_cast<FReadFileTextTask*>(handle->data);
+		(task->*Callback)();
+	}
+
+	/**
+	 * @brief Creates a new libuv file request handle.
+	 *
+	 * @param ownerTask The owner task.
+	 * @return The file request handle.
+	 */
+	static FRequestHandle MakeRequest(FReadFileTextTask* ownerTask)
+	{
+		FRequestHandle result { FMemory::AllocateObject<uv_fs_t>() };
+		FMemory::ZeroOut(result.Get(), sizeof(uv_fs_t));
+
+		result->data = ownerTask;
+
+		return result;
+	}
+
+	/**
+	 * @brief Called when the associated file is opened.
+	 */
+	void OnOpen()
+	{
+		if (m_OpenRequest->result < 0)
+		{
+			const FStringView errorString { uv_strerror(static_cast<int32>(m_OpenRequest->result)) };
+			if (m_ErrorCallback.IsValid())
+			{
+				m_ErrorCallback(MAKE_ERROR("{}", errorString));
+			}
+			else
+			{
+				UM_LOG(Error, "Failed to open file \"{}\" asynchronously. Reason: {}", m_FilePath, errorString);
+			}
+		}
+		else
+		{
+			m_FileHandle = static_cast<uv_file>(m_OpenRequest->result);
+			m_ReadRequest = MakeRequest(this);
+			m_ReadBuffer = MakeUnique<FRequestData>();
+
+			uv_loop_t* loop = GetEventLoop()->GetLoop();
+			uv_fs_read(loop, m_ReadRequest.Get(), m_FileHandle, &m_ReadBuffer->Buffer, 1, -1, DispatchRequest<&FReadFileTextTask::OnRead>);
+		}
+
+		m_OpenRequest.Reset();
+	}
+
+	/**
+	 * @brief Called when the associated file has had some data read.
+	 */
+	void OnRead()
+	{
+		uv_fs_req_cleanup(m_ReadRequest.Get());
+
+		if (m_ReadRequest->result < 0)
+		{
+			const FStringView errorString { uv_strerror(static_cast<int32>(m_ReadRequest->result)) };
+			m_ReadRequest.Reset();
+
+			if (m_ErrorCallback.IsValid())
+			{
+				m_ErrorCallback(MAKE_ERROR("{}", errorString));
+			}
+			else
+			{
+				UM_LOG(Error, "Failed to read file \"{}\". Reason: {}", m_FilePath, errorString);
+			}
+		}
+		else if (m_ReadRequest->result == 0)
+		{
+			m_ReadRequest.Reset();
+			m_CloseRequest = MakeRequest(this);
+
+			uv_loop_t* loop = GetEventLoop()->GetLoop();
+			uv_fs_close(loop, m_CloseRequest.Get(), m_FileHandle, DispatchRequest<&FReadFileTextTask::OnClose>);
+		}
+		else
+		{
+			// TODO Append to m_Text using m_ReadBuffer :)
+
+			// TODO(FIXME) Kinda gross that we're accessing m_Data on the static array directly...
+			FMemory::ZeroOutArray(m_ReadBuffer->BufferData.m_Data);
+
+			uv_loop_t* loop = GetEventLoop()->GetLoop();
+			uv_fs_read(loop, m_ReadRequest.Get(), m_FileHandle, &m_ReadBuffer->Buffer, 1, -1, DispatchRequest<&FReadFileTextTask::OnRead>);
+		}
+	}
+
+	/**
+	 * @brief Called when the associated file is closed.
+	 */
+	void OnClose()
+	{
+		m_CloseRequest.Reset();
+		m_FilePath.Reset();
+		m_FileHandle = INDEX_NONE;
+
+		m_CompleteCallback(MoveTemp(m_Text));
+	}
+
+	FRequestHandle m_OpenRequest;
+	FRequestHandle m_ReadRequest;
+	FRequestDataHandle m_ReadBuffer;
+	FRequestHandle m_CloseRequest;
+	FFile::FReadTextCallback m_CompleteCallback;
+	FFile::FReadErrorCallback m_ErrorCallback;
+	FString m_Text;
+	FString m_FilePath;
+	uv_file m_FileHandle = INDEX_NONE;
+};
+
+void FFile::ReadTextAsync(const FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FReadTextCallback callback, FReadErrorCallback errorCallback)
+{
+	if (eventLoop.IsNull())
+	{
+		if (errorCallback.IsValid())
+		{
+			errorCallback.Invoke(MAKE_ERROR("Given null event loop"));
+		}
+		else
+		{
+			UM_LOG(Error, "Given null event loop when reading file \"{}\"", filePath);
+		}
+		return;
+	}
+
+	if (callback.IsValid() == false)
+	{
+		if (errorCallback.IsValid())
+		{
+			errorCallback.Invoke(MAKE_ERROR("Given null read callback"));
+		}
+		else
+		{
+			UM_LOG(Error, "Given null read callback when reading file \"{}\"", filePath);
+		}
+		return;
+	}
+
+	TSharedPtr<FReadFileTextTask> task = eventLoop->AddTask<FReadFileTextTask>(MoveTemp(callback), MoveTemp(errorCallback));
+	task->StartReadingFile(filePath);
 }
 
 void FFile::Stat(const FStringView fileNameAsView, FFileStats& stats)

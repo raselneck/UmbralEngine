@@ -1,11 +1,14 @@
 #pragma once
 
 #include "Containers/Array.h"
+#include "Containers/Function.h"
 #include "Containers/String.h"
 #include "Containers/StringView.h"
 #include "HAL/DateTime.h"
 #include "Engine/Error.h"
 #include "HAL/FileStream.h"
+
+class FEventLoop;
 
 /**
  * @brief Defines file stats.
@@ -56,6 +59,10 @@ struct FFileStats
 class FFile
 {
 public:
+
+	using FReadErrorCallback = TFunction<void(FError)>;
+	using FReadBytesCallback = TFunction<void(TArray<uint8>)>;
+	using FReadTextCallback = TFunction<void(FString)>;
 
 	/**
 	 * @brief Attempts to delete the file pointed to the given path.
@@ -131,6 +138,16 @@ public:
 	 * @returns The array of bytes representing the file, or an error if one occurred.
 	 */
 	static TErrorOr<FString> ReadText(FStringView fileName);
+
+	/**
+	 * @brief Reads a file as a string asynchronously.
+	 *
+	 * @param filePath The path of the file to read.
+	 * @param eventLoop The event loop to queue the read operation to.
+	 * @param callback The function to call once reading is complete.
+	 * @param errorCallback The function to call if an error occurs.
+	 */
+	static void ReadTextAsync(FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FReadTextCallback callback, FReadErrorCallback errorCallback);
 
 	/**
 	 * @brief Attempts to stat a file.

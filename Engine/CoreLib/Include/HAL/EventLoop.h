@@ -26,6 +26,16 @@ public:
 	[[nodiscard]] TSharedPtr<FEventLoop> GetEventLoop() const;
 
 	/**
+	 * @brief Checks to see if this task is running.
+	 *
+	 * @return True if this task is running, otherwise false.
+	 */
+	[[nodiscard]] virtual bool IsRunning() const
+	{
+		return false;
+	}
+
+	/**
 	 * @brief Sets the event loop associated with this task.
 	 *
 	 * @param eventLoop The event loop associated with this task.
@@ -102,6 +112,16 @@ public:
 		TSharedPtr<TaskType> task = MakeShared<TaskType>(Forward<TaskArgTypes>(args)...);
 		RegisterTask(task);
 		return task;
+	}
+
+	/**
+	 * @brief Gets the underlying libuv loop.
+	 *
+	 * @return The underlying libuv loop.
+	 */
+	[[nodiscard]] struct uv_loop_s* GetLoop()
+	{
+		return m_Loop.Get();
 	}
 
 	/**
