@@ -92,7 +92,7 @@ public:
 	 */
 	template<typename U>
 	TSharedPtr(const TSharedPtr<U>& other)
-		requires TIsConvertible<U*, T*>::Value
+		requires(IsConvertible<U*, T*>)
 	{
 		CopyFrom(other);
 	}
@@ -115,7 +115,7 @@ public:
 	 */
 	template<typename U>
 	TSharedPtr(TSharedPtr<U>&& other) noexcept
-		requires TIsConvertible<U*, T*>::Value
+		requires(IsConvertible<U*, T*>)
 	{
 		MoveFrom(MoveTemp(other));
 	}
@@ -127,8 +127,12 @@ public:
 	 */
 	template<typename U>
 	TSharedPtr(TBadge<TWeakPtr<U>>, Private::ISharedResourceBlock* resourceBlock)
-		: TSharedPtr(resourceBlock)
+		: m_ResourceBlock { resourceBlock }
 	{
+		if (m_ResourceBlock != nullptr)
+		{
+			m_ResourceBlock->AddStrongRef();
+		}
 	}
 
 	/**
