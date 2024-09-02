@@ -242,4 +242,16 @@ public:
 	{
 		ZeroOutArray(elements, static_cast<SizeType>(sizeof(ElementType)), N);
 	}
+
+	/**
+	 * @brief Zeroes all of the memory for the given object.
+	 *
+	 * @tparam T The object's type.
+	 * @param object The object.
+	 */
+	template<typename T>
+	static void ZeroOutObject(T& object)
+	{
+		ZeroOut(&object, sizeof(T));
+	}
 };
