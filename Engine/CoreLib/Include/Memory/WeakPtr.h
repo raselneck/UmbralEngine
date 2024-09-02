@@ -196,18 +196,7 @@ public:
 	 *
 	 * @return This weak pointer as a shared pointer.
 	 */
-	[[nodiscard]] TSharedPtr<const ElementType> Pin() const
-	{
-		constexpr TBadge<TWeakPtr> badge;
-		return TSharedPtr<const ElementType> { badge, m_ResourceBlock };
-	}
-
-	/**
-	 * @brief Pins this weak pointer as a shared pointer.
-	 *
-	 * @return This weak pointer as a shared pointer.
-	 */
-	[[nodiscard]] TSharedPtr<ElementType> Pin()
+	[[nodiscard]] TSharedPtr<ElementType> Pin() const
 	{
 		constexpr TBadge<TWeakPtr> badge;
 		return TSharedPtr<ElementType> { badge, m_ResourceBlock };
