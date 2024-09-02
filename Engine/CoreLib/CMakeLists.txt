@@ -328,6 +328,7 @@ if(WITH_TESTING)
 	add_executable(UmbralCoreLibTests
 		"Tests/AnyTests.cpp"
 		"Tests/ArrayTests.cpp"
+		"Tests/FileTests.cpp"
 		"Tests/FunctionTests.cpp"
 		"Tests/HashMapTests.cpp"
 		"Tests/HashTableTests.cpp"
