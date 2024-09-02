@@ -10,7 +10,7 @@
  * @return \p value as an r-value.
  */
 template<typename T>
-[[nodiscard]] constexpr T&& Forward(typename TRemoveReference<T>::Type& value) noexcept
+[[nodiscard]] constexpr T&& Forward(RemoveReference<T>& value) noexcept
 {
 	return static_cast<T&&>(value);
 }
@@ -23,8 +23,8 @@ template<typename T>
  * @return \p value as an r-value.
  */
 template<typename T>
-[[nodiscard]] constexpr T&& Forward(typename TRemoveReference<T>::Type&& value) noexcept
+[[nodiscard]] constexpr T&& Forward(RemoveReference<T>&& value) noexcept
 {
-	static_assert(TIsLValueReference<T>::Value == false, "Cannot forward an l-value as an r-value");
+	static_assert(IsLValueReference<T> == false, "Cannot forward an l-value as an r-value");
 	return static_cast<T&&>(value);
 }
