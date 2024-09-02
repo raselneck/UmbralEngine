@@ -22,13 +22,13 @@ TErrorOr<void> UShader::LoadFromFile(const FStringView filePath, const EShaderFi
 	{
 	case EShaderFileType::Binary:
 	{
-		TRY_EVAL(const TArray<uint8> fileBytes, FFile::ReadAllBytes(filePath));
+		TRY_EVAL(const TArray<uint8> fileBytes, FFile::ReadBytes(filePath));
 		return LoadFromBinary(fileBytes.AsSpan());
 	}
 
 	case EShaderFileType::Text:
 	{
-		TRY_EVAL(const FString fileText, FFile::ReadAllText(filePath));
+		TRY_EVAL(const FString fileText, FFile::ReadText(filePath));
 		return LoadFromText(fileText);
 	}
 

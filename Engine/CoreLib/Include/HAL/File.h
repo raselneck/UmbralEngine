@@ -96,7 +96,7 @@ public:
 	 * @param bytes The output bytes.
 	 * @returns True if the file was read successfully, otherwise false.
 	 */
-	static bool ReadAllBytes(FStringView fileName, TArray<uint8>& bytes);
+	static bool ReadBytes(FStringView fileName, TArray<uint8>& bytes);
 
 	/**
 	 * @brief Attempts to read all bytes from a file.
@@ -104,7 +104,7 @@ public:
 	 * @param fileName The name of the file.
 	 * @returns The array of bytes representing the file, or an error if one occurred.
 	 */
-	static TErrorOr<TArray<uint8>> ReadAllBytes(FStringView fileName);
+	static TErrorOr<TArray<uint8>> ReadBytes(FStringView fileName);
 
 	/**
 	 * @brief Attempts to read all lines of text from a file.
@@ -113,7 +113,7 @@ public:
 	 * @param lines The output lines.
 	 * @returns True if the file was read successfully, otherwise false.
 	 */
-	static bool ReadAllLines(FStringView fileName, TArray<FString>& lines);
+	static bool ReadLines(FStringView fileName, TArray<FString>& lines);
 
 	/**
 	 * @brief Attempts to read all text from a file.
@@ -122,7 +122,7 @@ public:
 	 * @param text The output string.
 	 * @returns True if the file was read successfully, otherwise false.
 	 */
-	static bool ReadAllText(FStringView fileName, FString& text);
+	static bool ReadText(FStringView fileName, FString& text);
 
 	/**
 	 * @brief Attempts to read all bytes from a file.
@@ -130,7 +130,7 @@ public:
 	 * @param fileName The name of the file.
 	 * @returns The array of bytes representing the file, or an error if one occurred.
 	 */
-	static TErrorOr<FString> ReadAllText(FStringView fileName);
+	static TErrorOr<FString> ReadText(FStringView fileName);
 
 	/**
 	 * @brief Attempts to stat a file.

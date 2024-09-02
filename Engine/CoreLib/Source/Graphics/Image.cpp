@@ -51,7 +51,7 @@ FColor FImage::GetPixel(int32 x, int32 y) const
 
 TErrorOr<void> FImage::LoadFromFile(const FStringView fileName)
 {
-	TRY_EVAL(TArray<uint8> fileBytes, FFile::ReadAllBytes(fileName));
+	TRY_EVAL(TArray<uint8> fileBytes, FFile::ReadBytes(fileName));
 
 	int32 width, height;
 	stbi_uc* filePixels = stbi_load_from_memory(fileBytes.GetData(), fileBytes.Num(), &width, &height, nullptr, STBI_rgb_alpha);

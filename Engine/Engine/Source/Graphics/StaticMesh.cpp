@@ -340,7 +340,7 @@ TObjectPtr<UContentManager> UStaticMesh::GetContentManager() const
 
 TErrorOr<void> UStaticMesh::LoadFromFile(const FString& filePath)
 {
-	TErrorOr<TArray<uint8>> fileLoadResult = FFile::ReadAllBytes(filePath);
+	TErrorOr<TArray<uint8>> fileLoadResult = FFile::ReadBytes(filePath);
 	if (fileLoadResult.IsError())
 	{
 		return fileLoadResult.ReleaseError();

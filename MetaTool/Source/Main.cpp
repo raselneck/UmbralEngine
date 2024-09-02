@@ -157,7 +157,7 @@ private:
 
 bool FMetaGenerationContext::ReadHeadersFile(const FStringView headersFilePath)
 {
-	TErrorOr<FString> readResult = FFile::ReadAllText(headersFilePath);
+	TErrorOr<FString> readResult = FFile::ReadText(headersFilePath);
 	if (readResult.IsError())
 	{
 		UM_LOG(Error, "{}", readResult.ReleaseError());

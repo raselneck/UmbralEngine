@@ -299,7 +299,7 @@ EHeaderFileParseResult FHeaderFileParser::ParseFile(const FStringView filePath, 
 	m_FileSource.Reset();
 	m_FoundClasses.Reset();
 
-	TErrorOr<FString> readResult = FFile::ReadAllText(filePath);
+	TErrorOr<FString> readResult = FFile::ReadText(filePath);
 	if (readResult.IsError())
 	{
 		UM_LOG(Error, "{}", readResult.ReleaseError());

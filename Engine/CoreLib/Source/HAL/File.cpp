@@ -55,9 +55,9 @@ bool FFile::Exists(const FString& fileName)
 	return stats.Exists && stats.IsDirectory == false;
 }
 
-bool FFile::ReadAllBytes(const FStringView fileName, TArray<uint8>& bytes)
+bool FFile::ReadBytes(const FStringView fileName, TArray<uint8>& bytes)
 {
-	TErrorOr<TArray<uint8>> result = ReadAllBytes(fileName);
+	TErrorOr<TArray<uint8>> result = ReadBytes(fileName);
 	if (result.IsError())
 	{
 		UM_LOG(Error, "{}", result.GetError());
@@ -69,7 +69,7 @@ bool FFile::ReadAllBytes(const FStringView fileName, TArray<uint8>& bytes)
 	return true;
 }
 
-TErrorOr<TArray<uint8>> FFile::ReadAllBytes(const FStringView fileName)
+TErrorOr<TArray<uint8>> FFile::ReadBytes(const FStringView fileName)
 {
 	// Attempt to open the file
 	TSharedPtr<IFileStream> fileStream = FFileSystem::OpenRead(fileName);
@@ -101,10 +101,10 @@ TErrorOr<TArray<uint8>> FFile::ReadAllBytes(const FStringView fileName)
 	return bytes;
 }
 
-bool FFile::ReadAllLines(const FStringView fileName, TArray<FString>& lines)
+bool FFile::ReadLines(const FStringView fileName, TArray<FString>& lines)
 {
 	FString fileText;
-	if (ReadAllText(fileName, fileText) == false)
+	if (ReadText(fileName, fileText) == false)
 	{
 		return false;
 	}
@@ -114,9 +114,9 @@ bool FFile::ReadAllLines(const FStringView fileName, TArray<FString>& lines)
 	return true;
 }
 
-bool FFile::ReadAllText(const FStringView fileName, FString& text)
+bool FFile::ReadText(const FStringView fileName, FString& text)
 {
-	TErrorOr<FString> result = ReadAllText(fileName);
+	TErrorOr<FString> result = ReadText(fileName);
 	if (result.IsError())
 	{
 		UM_LOG(Error, "{}", result.GetError());
@@ -128,7 +128,7 @@ bool FFile::ReadAllText(const FStringView fileName, FString& text)
 	return true;
 }
 
-TErrorOr<FString> FFile::ReadAllText(FStringView fileName)
+TErrorOr<FString> FFile::ReadText(FStringView fileName)
 {
 	// Attempt to open the file
 	TSharedPtr<IFileStream> fileStream = FFileSystem::OpenRead(fileName);
