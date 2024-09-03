@@ -266,9 +266,9 @@ static void PopulateIndexBufferWithFaceData(UIndexBuffer* indexBuffer, const aiM
 	for (uint32 idx = 0; idx < mesh->mNumFaces; ++idx)
 	{
 		const aiFace& face = mesh->mFaces[idx];
-		indices.Add(face.mIndices[0]);
-		indices.Add(face.mIndices[1]);
-		indices.Add(face.mIndices[2]);
+		indices.Add(static_cast<IndexType>(face.mIndices[0]));
+		indices.Add(static_cast<IndexType>(face.mIndices[1]));
+		indices.Add(static_cast<IndexType>(face.mIndices[2]));
 	}
 
 	indexBuffer->SetData(indices);

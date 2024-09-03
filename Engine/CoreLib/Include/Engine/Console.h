@@ -120,7 +120,7 @@ public:
 	 * @param args The format arguments.
 	 */
 	template<typename... ArgTypes>
-	static void Write(const FStringView message, ArgTypes... args)
+	static void Write(const FStringView message, ArgTypes&&... args)
 	{
 		const FString text = FString::Format(message, Forward<ArgTypes>(args)...);
 		Write(text.AsStringView());
@@ -141,7 +141,7 @@ public:
 	 * @param args The format arguments.
 	 */
 	template<typename... ArgTypes>
-	static void WriteLine(const FStringView message, ArgTypes... args)
+	static void WriteLine(const FStringView message, ArgTypes&&... args)
 	{
 		const FString text = FString::Format(message, Forward<ArgTypes>(args)...);
 		WriteLine(text.AsStringView());

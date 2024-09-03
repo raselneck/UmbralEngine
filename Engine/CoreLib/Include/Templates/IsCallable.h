@@ -12,9 +12,9 @@
 template<typename ReturnType, typename CallableType, typename... ParamTypes>
 struct TIsCallable
 {
-	static constexpr bool Value = requires(CallableType callable, ParamTypes... params)
+	static constexpr bool Value = requires(CallableType callable, ParamTypes&&... params)
 	{
-		callable(params...);
+		callable(Forward<ParamTypes>(params)...);
 		requires (TIsSame<ReturnType, decltype(callable(params...))>::Value);
 	};
 };

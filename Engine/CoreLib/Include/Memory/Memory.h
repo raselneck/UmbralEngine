@@ -68,7 +68,7 @@ public:
 	 * @return A pointer to the allocated object.
 	 */
 	template<typename ElementType, typename... ConstructTypes>
-	[[nodiscard]] static ElementType* AllocateObject(ConstructTypes... args)
+	[[nodiscard]] static ElementType* AllocateObject(ConstructTypes&&... args)
 	{
 		void* objectMemory = Allocate(sizeof(ElementType));
 		ConstructObjectAt<ElementType, ConstructTypes...>(objectMemory, Forward<ConstructTypes>(args) ...);
@@ -84,7 +84,7 @@ public:
 	 * @return A pointer to the allocated object.
 	 */
 	template<typename ElementType, typename... ConstructTypes>
-	static ElementType ConstructObject(ConstructTypes... args)
+	static ElementType ConstructObject(ConstructTypes&&... args)
 	{
 		ElementType value { Forward<ConstructTypes>(args)... };
 		return MoveTemp(value);
@@ -100,7 +100,7 @@ public:
 	 * @return A pointer to the allocated object.
 	 */
 	template<typename ElementType, typename... ConstructTypes>
-	static void ConstructObjectAt(void* objectMemory, ConstructTypes... args)
+	static void ConstructObjectAt(void* objectMemory, ConstructTypes&&... args)
 	{
 		if constexpr (IsZeroConstructible<ElementType> && sizeof...(args) == 0)
 		{

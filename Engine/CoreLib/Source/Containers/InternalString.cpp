@@ -48,7 +48,7 @@ namespace Private
 	}
 
 	template<int32 N, typename... ArgTypes>
-	FStringView SafeFormatValue(TStaticArray<char, N>& formatBuffer, const char* formatString, ArgTypes... args)
+	FStringView SafeFormatValue(TStaticArray<char, N>& formatBuffer, const char* formatString, ArgTypes&&... args)
 	{
 		const int32 formatLength = std::snprintf(formatBuffer.GetData(), static_cast<size_t>(formatBuffer.Num()), formatString, args...);
 		return FStringView { formatBuffer.GetData(), formatLength };

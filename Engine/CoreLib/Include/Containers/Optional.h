@@ -98,8 +98,8 @@ public:
 	 * @param args The arguments to pass along to the constructor.
 	 * @return The underlying value that was constructed.
 	 */
-	template<typename ... ArgTypes>
-	[[nodiscard]] ElementType& EmplaceValue(ArgTypes... args)
+	template<typename... ArgTypes>
+	[[nodiscard]] ElementType& EmplaceValue(ArgTypes&&... args)
 	{
 		Reset();
 
@@ -374,7 +374,7 @@ inline uint64 GetHashCode(const TOptional<T>& value)
  * @return The optional value.
  */
 template<typename T, typename... ArgTypes>
-inline TOptional<T> MakeOptional(ArgTypes... args)
+inline TOptional<T> MakeOptional(ArgTypes&&... args)
 {
 	TOptional<T> value;
 	(void)value.template EmplaceValue<ArgTypes...>(Forward<ArgTypes>(args)...);

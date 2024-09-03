@@ -38,7 +38,7 @@ private:
 	 * @return The "parenthesized" result.
 	 */
 	template<typename... ExpressionTypes>
-	FString Parenthesize(const FStringView name, ExpressionTypes& ... expressions)
+	FString Parenthesize(const FStringView name, ExpressionTypes&&... expressions)
 	{
 		FStringBuilder builder;
 		builder.Append("("_sv).Append(name);

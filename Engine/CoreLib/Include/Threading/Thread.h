@@ -15,6 +15,12 @@ class FThread final
 
 	class FThreadImpl;
 
+	template<typename... ArgTypes>
+	struct TMakeThreadFunction
+	{
+		using Type = TFunction<void(decltype(Forward<ArgTypes>(declval<ArgTypes>()))...)>;
+	};
+
 public:
 
 	/**
@@ -46,29 +52,11 @@ public:
 	 * @return The thread.
 	 */
 	template<typename... ArgTypes>
-	[[nodiscard]] static FThread Create(TFunction<void(ArgTypes...)> function, ArgTypes... parameters)
+	[[nodiscard]] static FThread Create(typename TMakeThreadFunction<ArgTypes...>::Type function, ArgTypes&&... parameters)
 	{
 		TFunction<void()> voidFunction = [function = MoveTemp(function), ...parameters = Forward<ArgTypes>(parameters)]() mutable
 		{
-			function(MoveTemp(parameters)...);
-		};
-
-		return Create(MoveTemp(voidFunction));
-	}
-
-	/**
-	 * @brief Creates a new thread.
-	 *
-	 * @tparam ArgTypes The types of the arguments to pass along to the function.
-	 * @param function The function to run on the thread.
-	 * @param parameters The arguments to pass along to the function.
-	 * @return The thread.
-	 */
-	template<typename... ArgTypes>
-	[[nodiscard]] static FThread Create(void (*function)(ArgTypes...), ArgTypes... parameters)
-	{
-		TFunction<void()> voidFunction = [function = function, ...parameters = Forward<ArgTypes>(parameters)]() mutable
-		{
+			// TODO(FIXME) Should this be Forward?
 			function(MoveTemp(parameters)...);
 		};
 

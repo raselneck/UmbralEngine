@@ -335,7 +335,7 @@ inline uint64 HashItems(const ElementType (&items)[N])
  * @return The hash code.
  */
 template<typename FirstType, typename... OtherTypes>
-inline uint64 HashItems(const FirstType& firstValue, const OtherTypes&... otherValues)
+inline uint64 HashItems(const FirstType& firstValue, OtherTypes&&... otherValues)
 {
 	uint64 hash = GetHashCode(firstValue);
 
@@ -343,7 +343,7 @@ inline uint64 HashItems(const FirstType& firstValue, const OtherTypes&... otherV
 	{
 		hash = Private::HashCombine(hash, GetHashCode(value));
 		return EIterationDecision::Continue;
-	}, otherValues...);
+	}, Forward<OtherTypes>(otherValues)...);
 
 	return hash;
 }

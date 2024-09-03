@@ -456,8 +456,8 @@ public:
 	 * @param args The arguments to forward to the new element's constructor.
 	 * @return The newly added element.
 	 */
-	template<typename ... ConstructTypes>
-	[[nodiscard]] ElementType& Emplace(ConstructTypes&& ... args)
+	template<typename... ConstructTypes>
+	[[nodiscard]] ElementType& Emplace(ConstructTypes&&... args)
 	{
 		TUniquePtr<NodeType> valueNode = NodeType::ConstructUnique(Forward<ConstructTypes>(args)...);
 		AppendNode(MoveTemp(valueNode));

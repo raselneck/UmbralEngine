@@ -278,7 +278,7 @@ namespace Private
 	 * @return The shared resource block for the allocated object.
 	 */
 	template<typename ElementType, typename... ConstructTypes>
-	ISharedResourceBlock* AllocCombinedResourceBlockAt(void* memory, ConstructTypes... args)
+	ISharedResourceBlock* AllocCombinedResourceBlockAt(void* memory, ConstructTypes&&... args)
 	{
 		using FResourceBlock = TSharedResourceBlock<ElementType, ESharedResourceAllocStrategy::ObjectAndBlock>;
 
@@ -292,7 +292,7 @@ namespace Private
 
 		// Construct the object FIRST so the resource block points to something valid
 		void* objectLocation = reinterpret_cast<uint8*>(memory) + objectOffset;
-		FMemory::ConstructObjectAt<ElementType>(objectLocation, MoveTemp(args)...);
+		FMemory::ConstructObjectAt<ElementType>(objectLocation, Forward<ConstructTypes>(args)...);
 
 		// Construct the resource block
 		void* resourceBlockLocation = reinterpret_cast<uint8*>(memory) + resourceBlockOffset;
@@ -310,7 +310,7 @@ namespace Private
 	 * @return The shared resource block for the allocated object.
 	 */
 	template<typename ElementType, typename... ConstructTypes>
-	ISharedResourceBlock* AllocCombinedResourceBlock(ConstructTypes... args)
+	ISharedResourceBlock* AllocCombinedResourceBlock(ConstructTypes&&... args)
 	{
 		const int32 resourceBlockSize = GetCombinedResourceBlockSize<ElementType>();
 		void* resourceBlockMemory = FMemory::Allocate(resourceBlockSize);

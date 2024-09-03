@@ -249,7 +249,7 @@ public:
 	 * @return The joined path.
 	 */
 	template<typename... ArgTypes>
-	[[nodiscard]] static FString Join(FStringView firstPath, ArgTypes... otherParts)
+	[[nodiscard]] static FString Join(FStringView firstPath, ArgTypes&&... otherParts)
 	{
 		TArray<FStringOrStringView> pathParts;
 		pathParts.Reserve(1 + sizeof...(ArgTypes));

@@ -72,8 +72,13 @@ void FEventLoop::PollTasks()
 	uv_update_time(m_Loop.Get());
 
 	// Run the loop once without waiting for a task to be added if there are none
-	uv_run(m_Loop.Get(), UV_RUN_NOWAIT);
+	const int32 numTasksRemaining = uv_run(m_Loop.Get(), UV_RUN_NOWAIT);
+	if (m_NumLoopTasks == numTasksRemaining)
+	{
+		return;
+	}
 
+	m_NumLoopTasks = numTasksRemaining;
 	m_Tasks.RemoveByPredicate([](const TSharedPtr<IEventTask>& task)
 	{
 		return task->IsRunning() == false;

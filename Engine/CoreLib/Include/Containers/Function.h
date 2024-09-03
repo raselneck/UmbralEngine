@@ -23,7 +23,7 @@ class TFunction;
  * @tparam ReturnType The return type.
  * @tparam ArgTypes The argument types.
  */
-template<typename ReturnType, typename ... ArgTypes>
+template<typename ReturnType, typename... ArgTypes>
 class TFunction<ReturnType(ArgTypes...)> final
 {
 	UM_DISABLE_COPY(TFunction);
@@ -487,7 +487,7 @@ private:
 	FPotentiallySmallBuffer m_CallableStorage;
 };
 
-template<typename ReturnType, typename ... ArgTypes>
+template<typename ReturnType, typename... ArgTypes>
 struct TIsZeroConstructible<TFunction<ReturnType(ArgTypes...)>> : TIsZeroConstructible<FPotentiallySmallBuffer>
 {
 };

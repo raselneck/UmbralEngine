@@ -104,7 +104,7 @@ public:
 	 * @return The handle to the task.
 	 */
 	template<typename TaskType, typename... TaskArgTypes>
-	[[nodiscard]] TSharedPtr<TaskType> AddTask(TaskArgTypes... args)
+	[[nodiscard]] TSharedPtr<TaskType> AddTask(TaskArgTypes&&... args)
 	{
 		// TODO CLion complains about AddTask not being implemented if this is a requires() clause...
 		static_assert(IsBaseOf<IEventTask, TaskType>, "Tasks must inherit from IEventTask");
@@ -172,4 +172,5 @@ private:
 
 	TArray<TSharedPtr<IEventTask>> m_Tasks;
 	FLoopHandle m_Loop;
+	int32 m_NumLoopTasks = 0;
 };

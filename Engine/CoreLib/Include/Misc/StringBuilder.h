@@ -63,7 +63,7 @@ public:
 	template<typename FirstArgType, typename... ArgTypes>
 	FStringBuilder& Append(const FStringView formatString, const FirstArgType& firstArg, const ArgTypes&... otherArgs)
 	{
-		TArray<Private::FStringFormatArgument> formatArgs = Private::MakeFormatArgumentArray(firstArg, otherArgs...);
+		TArray<Private::FStringFormatArgument> formatArgs = Private::MakeFormatArgumentArray(firstArg, Forward<ArgTypes>(otherArgs)...);
 		return AppendFormattedString(formatString, formatArgs.AsSpan());
 	}
 

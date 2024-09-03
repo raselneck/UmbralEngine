@@ -28,7 +28,7 @@ namespace Private
 		static void Get() { }
 	};
 
-	template<FVariantSizeType N, typename ... OtherTypes>
+	template<FVariantSizeType N, typename... OtherTypes>
 	class TIndexedVariantHelper;
 
 	/**
@@ -38,7 +38,7 @@ namespace Private
 	 * @tparam FirstType The first type.
 	 * @tparam OtherTypes The other types.
 	 */
-	template<FVariantSizeType N, typename FirstType, typename ... OtherTypes>
+	template<FVariantSizeType N, typename FirstType, typename... OtherTypes>
 	class TIndexedVariantHelper<N, FirstType, OtherTypes...>
 	{
 	public:
@@ -311,7 +311,7 @@ struct FVariantVisitor : Types...
 // Explicit deduction guide for the variant visitor
 template<typename... Types> FVariantVisitor(Types...) -> FVariantVisitor<Types...>;
 
-template<typename FirstType, typename ... OtherTypes>
+template<typename FirstType, typename... OtherTypes>
 class TVariant;
 
 template<typename T>

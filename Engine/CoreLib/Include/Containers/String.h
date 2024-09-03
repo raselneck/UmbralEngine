@@ -267,7 +267,7 @@ public:
 	 * @return The formatted string.
 	 */
 	template<typename... ArgTypes>
-	[[nodiscard]] static FString Format(const FStringView format, ArgTypes... args)
+	[[nodiscard]] static FString Format(const FStringView format, ArgTypes&&... args)
 	{
 		if constexpr (sizeof...(args) == 0)
 		{

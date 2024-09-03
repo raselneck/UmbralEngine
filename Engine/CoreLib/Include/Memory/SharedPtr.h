@@ -526,7 +526,7 @@ namespace Private
 		 * @return The shared pointer.
 		 */
 		template<typename ElementType, typename... ConstructTypes>
-		[[nodiscard]] static TSharedPtr<ElementType> MakeShared(ConstructTypes... args)
+		[[nodiscard]] static TSharedPtr<ElementType> MakeShared(ConstructTypes&&... args)
 		{
 			ISharedResourceBlock* resourceBlock = AllocCombinedResourceBlock<ElementType>(Forward<ConstructTypes>(args)...);
 			return TSharedPtr<ElementType> { resourceBlock };
@@ -570,7 +570,7 @@ uint64 GetHashCode(TSharedPtr<T> value)
  * @return The shared pointer.
  */
 template<typename ElementType, typename... ConstructTypes>
-TSharedPtr<ElementType> MakeShared(ConstructTypes... args)
+TSharedPtr<ElementType> MakeShared(ConstructTypes&&... args)
 {
 	return Private::FSharedPtrHelper::MakeShared<ElementType>(Forward<ConstructTypes>(args)...);
 }

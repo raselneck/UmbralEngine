@@ -14,6 +14,11 @@
 #endif
 #include <uv.h>
 
+// Thanks, libuv, for including Windows.h :^)
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
+
 /**
  * @brief The maximum length for a file that we can read.
  *

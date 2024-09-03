@@ -195,7 +195,7 @@ protected:
 	 * @param args The format arguments.
 	 */
 	template<typename... ArgTypes>
-	void RecordError(FLoxSourceLocation location, const FStringView message, ArgTypes... args)
+	void RecordError(FLoxSourceLocation location, const FStringView message, ArgTypes&&... args)
 	{
 		RecordError(MoveTemp(location), FString::Format(message, Forward<ArgTypes>(args)...));
 	}

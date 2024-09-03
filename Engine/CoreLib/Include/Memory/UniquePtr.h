@@ -182,7 +182,7 @@ public:
 	 * @return The unique pointer.
 	 */
 	template<typename... ArgTypes>
-	[[nodiscard]] static TUniquePtr Make(ArgTypes... args)
+	[[nodiscard]] static TUniquePtr Make(ArgTypes&&... args)
 	{
 		TUniquePtr result;
 		result.m_Object = FMemory::AllocateObject<ElementType>(Forward<ArgTypes>(args)...);
@@ -366,7 +366,7 @@ uint64 GetHashCode(TUniquePtr<T>& value)
  * @return The unique pointer.
  */
 template<typename ObjectType, typename... ArgTypes>
-TUniquePtr<ObjectType> MakeUnique(ArgTypes... args)
+TUniquePtr<ObjectType> MakeUnique(ArgTypes&&... args)
 {
 	return TUniquePtr<ObjectType>::Make(Forward<ArgTypes>(args)...);
 }

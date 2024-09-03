@@ -16,7 +16,7 @@ FStringOrStringView::FStringOrStringView(SpanType value)
 }
 
 FStringOrStringView::FStringOrStringView(const FString& value)
-	: m_Value { value.AsStringView() }
+	: m_Value { value }
 {
 }
 

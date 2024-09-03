@@ -109,7 +109,7 @@ private:
 	 * @param args The log arguments.
 	 */
 	template<typename... ArgTypes>
-	void LogError(TSNode context, FStringView message, ArgTypes... args) const
+	void LogError(TSNode context, FStringView message, ArgTypes&&... args) const
 	{
 		const TSPoint location = ts_node_start_point(context);
 
@@ -132,7 +132,7 @@ private:
 	 * @param args The log arguments.
 	 */
 	template<typename... ArgTypes>
-	void LogMessage(TSNode context, FStringView message, ArgTypes... args) const
+	void LogMessage(TSNode context, FStringView message, ArgTypes&&... args) const
 	{
 	    const TSPoint location = ts_node_start_point(context);
 

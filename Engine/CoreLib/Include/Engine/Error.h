@@ -90,7 +90,7 @@ public:
 	 * @return The formatted error.
 	 */
 	template<typename... ArgTypes>
-	static TError Format(SourceLocationType location, const FStringView messageFormat, ArgTypes... messageArgs)
+	static TError Format(SourceLocationType location, const FStringView messageFormat, ArgTypes&&... messageArgs)
 	{
 		if constexpr (sizeof...(messageArgs) == 0)
 		{

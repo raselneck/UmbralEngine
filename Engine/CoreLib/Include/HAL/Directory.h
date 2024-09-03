@@ -68,7 +68,7 @@ public:
 	 * @return The path to the content file.
 	 */
 	template<typename... StringLikeTypes>
-	[[nodiscard]] static FString GetContentFilePath(StringLikeTypes... fileNameParts)
+	[[nodiscard]] static FString GetContentFilePath(StringLikeTypes&&... fileNameParts)
 	{
 		static_assert(sizeof...(fileNameParts) > 1, "Must provide at least two file name parts to be joined");
 		return GetContentFilePath(FPath::Join(Forward<StringLikeTypes>(fileNameParts)...));

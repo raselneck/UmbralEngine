@@ -135,7 +135,7 @@ template<typename FirstType, typename... OtherTypes>
 struct TVariadicForEach<FirstType, OtherTypes...>
 {
 	template<typename CallbackType>
-	static void Visit(CallbackType callback, FirstType firstValue, OtherTypes... otherValues)
+	static void Visit(CallbackType callback, FirstType&& firstValue, OtherTypes&&... otherValues)
 	{
 		using CallbackReturnType = decltype(callback(MoveTempIfPossible(firstValue)));
 		static_assert(IsSame<CallbackReturnType, EIterationDecision>, "Callback must return EIteractionDecision");

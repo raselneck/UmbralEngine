@@ -378,7 +378,7 @@ namespace Private
 	 * @return The array of string formatting arguments.
 	 */
 	template<typename... ArgTypes>
-	[[nodiscard]] TArray<FStringFormatArgument> MakeFormatArgumentArray(ArgTypes... args)
+	[[nodiscard]] TArray<FStringFormatArgument> MakeFormatArgumentArray(ArgTypes&&... args)
 	{
 		TArray<FStringFormatArgument> result;
 		result.Reserve(static_cast<int32>(sizeof...(args)));
