@@ -93,10 +93,10 @@ TEST(ArrayTests, MoveConstruct)
 
 TEST(ArrayTests, AddCopy)
 {
-	FArrayTestHelper ValueToCopy;
+	const FArrayTestHelper ValueToCopy;
 
 	TArray<FArrayTestHelper> HelperArray;
-	HelperArray.Add(static_cast<const FArrayTestHelper&>(ValueToCopy));
+	HelperArray.Add(ValueToCopy);
 
 	EXPECT_GT(HelperArray.GetCapacity(), 0);
 	EXPECT_NE(HelperArray.GetData(), nullptr);
