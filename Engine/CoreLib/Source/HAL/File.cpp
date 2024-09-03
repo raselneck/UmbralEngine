@@ -173,6 +173,10 @@ TErrorOr<FString> FFile::ReadText(FStringView fileName)
  */
 class FReadFileTextTask : public IEventTask
 {
+	// TODO(raselneck) This task seems like it can take a very long time... During the File Tests, I'm getting about 7ms in CLion on Windows,
+	//                 23ms from Windows Terminal (both with an M.2 SSD), and ~1.5ms on my M2 MacBook Pro just to read the test file. Need to
+	//                 test if that is actually this task taking that long, or if it's a side effect of the EventLoop structure
+
 	struct FRequestDestructor
 	{
 		void Delete(uv_fs_t* handle)
@@ -184,15 +188,15 @@ class FReadFileTextTask : public IEventTask
 
 	struct FRequestData
 	{
-		TStaticArray<uint8, 4096> BufferData;
+		TStaticArray<char, 4096> BufferData;
 		uv_buf_t Buffer;
 
 		/**
 		 * @brief Initializes Buffer to point to BufferData.
 		 */
 		FRequestData()
+			: Buffer { uv_buf_init(reinterpret_cast<char*>(BufferData.GetData()), static_cast<uint32>(BufferData.Num())) }
 		{
-			uv_buf_init(reinterpret_cast<char*>(BufferData.GetData()), static_cast<uint32>(BufferData.Num()));
 		}
 	};
 
@@ -330,7 +334,8 @@ private:
 		}
 		else
 		{
-			// TODO Append to m_Text using m_ReadBuffer :)
+			const int32 numReadChars = static_cast<int32>(m_ReadRequest->result);
+			m_Text.Append(m_ReadBuffer->BufferData.GetData(), numReadChars);
 
 			// TODO(FIXME) Kinda gross that we're accessing m_Data on the static array directly...
 			FMemory::ZeroOutArray(m_ReadBuffer->BufferData.m_Data);
