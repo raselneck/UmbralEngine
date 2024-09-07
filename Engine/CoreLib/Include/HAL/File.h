@@ -115,6 +115,16 @@ public:
 	static TErrorOr<TArray<uint8>> ReadBytes(FStringView fileName);
 
 	/**
+	 * @brief Reads a file as an array of bytes asynchronously.
+	 *
+	 * @param filePath The path of the file to read.
+	 * @param eventLoop The event loop to queue the read operation to.
+	 * @param callback The function to call once reading is complete.
+	 * @param errorCallback The function to call if an error occurs.
+	 */
+	static void ReadBytesAsync(FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FReadBytesCallback callback, FErrorCallback errorCallback);
+
+	/**
 	 * @brief Attempts to read all lines of text from a file.
 	 *
 	 * @param fileName The name of the file.
