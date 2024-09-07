@@ -60,9 +60,10 @@ class FFile
 {
 public:
 
-	using FReadErrorCallback = TFunction<void(FError)>;
+	using FErrorCallback = TFunction<void(FError)>;
 	using FReadBytesCallback = TFunction<void(TArray<uint8>)>;
 	using FReadTextCallback = TFunction<void(FString)>;
+	using FStatCallback = TFunction<void(FFileStats)>;
 
 	/**
 	 * @brief Attempts to delete the file pointed to the given path.
@@ -147,7 +148,7 @@ public:
 	 * @param callback The function to call once reading is complete.
 	 * @param errorCallback The function to call if an error occurs.
 	 */
-	static void ReadTextAsync(FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FReadTextCallback callback, FReadErrorCallback errorCallback);
+	static void ReadTextAsync(FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FReadTextCallback callback, FErrorCallback errorCallback);
 
 	/**
 	 * @brief Attempts to stat a file.
@@ -164,6 +165,16 @@ public:
 	 * @param stats The file stats.
 	 */
 	static void Stat(const FString& fileName, FFileStats& stats);
+
+	/**
+	 * @brief Attempts to stat a file asynchronously.
+	 *
+	 * @param filePath The path to the file.
+	 * @param eventLoop The event loop to queue the stat operation to.
+	 * @param callback The function to call once stat-ing is complete.
+	 * @param errorCallback The function to call if an error occurs.
+	 */
+	static void StatAsync(FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FStatCallback callback, FErrorCallback errorCallback);
 
 	/**
 	 * @brief Attempts to stat a file.
