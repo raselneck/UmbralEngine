@@ -211,4 +211,31 @@ public:
 		Stat(fileName, result);
 		return result;
 	}
+
+	/**
+	 * @brief Writes an array of bytes to a file.
+	 *
+	 * @param filePath The file path.
+	 * @param bytes The bytes to write.
+	 * @return The error that was encountered while writing to the file, or nothing on success.
+	 */
+	static TErrorOr<void> WriteBytes(FStringView filePath, TSpan<const uint8> bytes);
+
+	/**
+	 * @brief Writes an array of strings as lines to a file.
+	 *
+	 * @param filePath The file path.
+	 * @param lines The lines of text to write.
+	 * @return The error that was encountered while writing to the file, or nothing on success.
+	 */
+	static TErrorOr<void> WriteLines(FStringView filePath, TSpan<const FString> lines);
+
+	/**
+	 * @brief Writes a string to a file.
+	 *
+	 * @param filePath The file path.
+	 * @param text The text to write.
+	 * @return The error that was encountered while writing to the file, or nothing on success.
+	 */
+	static TErrorOr<void> WriteText(FStringView filePath, FStringView text);
 };

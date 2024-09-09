@@ -635,3 +635,46 @@ void FFile::StatAsync(const FStringView filePath, const TSharedPtr<FEventLoop>& 
 	TSharedPtr<FStatFileTask> task = eventLoop->AddTask<FStatFileTask>(filePath, MoveTemp(callback), MoveTemp(errorCallback));
 	task->StartTask();
 }
+
+TErrorOr<void> FFile::WriteBytes(const FStringView filePath, const TSpan<const uint8> bytes)
+{
+	TSharedPtr<IFileStream> fileStream = FFileSystem::OpenWrite(filePath);
+	if (fileStream.IsNull())
+	{
+		return MAKE_ERROR("Failed to open \"{}\" for writing", filePath);
+	}
+
+	fileStream->Write(bytes);
+
+	return {};
+}
+
+TErrorOr<void> FFile::WriteLines(const FStringView filePath, const TSpan<const FString> lines)
+{
+	TSharedPtr<IFileStream> fileStream = FFileSystem::OpenWrite(filePath);
+	if (fileStream.IsNull())
+	{
+		return MAKE_ERROR("Failed to open \"{}\" for writing", filePath);
+	}
+
+	for (const FStringView line : lines)
+	{
+		fileStream->Write(line);
+		fileStream->Write("\n"_sv);
+	}
+
+	return {};
+}
+
+TErrorOr<void> FFile::WriteText(const FStringView filePath, const FStringView text)
+{
+	TSharedPtr<IFileStream> fileStream = FFileSystem::OpenWrite(filePath);
+	if (fileStream.IsNull())
+	{
+		return MAKE_ERROR("Failed to open \"{}\" for writing", filePath);
+	}
+
+	fileStream->Write(text);
+
+	return {};
+}
