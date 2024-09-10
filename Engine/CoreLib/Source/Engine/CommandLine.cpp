@@ -5,14 +5,19 @@ static int32 GArgCount = 0;
 static char** GArgValues = nullptr;
 static TArray<FStringView> GArguments;
 
+FCommandLineArguments::FCommandLineArguments(TArray<FCString> arguments)
+	: m_Arguments { MoveTemp(arguments) }
+{
+	m_MutableArguments.Reserve(m_Arguments.Num());
+	for (FCString& arg : m_Arguments)
+	{
+		m_MutableArguments.Add(arg.GetChars());
+	}
+}
+
 int32 FCommandLine::GetArgc()
 {
 	return GArgCount;
-}
-
-const char* const* FCommandLine::GetArgv()
-{
-	return const_cast<const char* const*>(GArgValues);
 }
 
 TSpan<FStringView> FCommandLine::GetArguments()
@@ -27,6 +32,16 @@ FStringView FCommandLine::GetArgument(int32 index)
 		return GArguments[index];
 	}
 	return {};
+}
+
+FCommandLineArguments FCommandLine::GetMutableArguments()
+{
+	TArray<FCString> arguments;
+	for (int32 idx = 0; idx < GArgCount; ++idx)
+	{
+		(void)arguments.Emplace(GArgValues[idx]);
+	}
+	return FCommandLineArguments { MoveTemp(arguments) };
 }
 
 void FCommandLine::Initialize(int32 argc, char** argv)

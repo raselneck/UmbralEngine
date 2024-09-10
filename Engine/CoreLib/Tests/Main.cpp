@@ -4,8 +4,9 @@
 
 extern "C" int32 UmbralMain()
 {
-	int32 argc = FCommandLine::GetArgc();
-	char** argv = const_cast<char**>(FCommandLine::GetArgv());
+	FCommandLineArguments arguments = FCommandLine::GetMutableArguments();
+	int32 argc = arguments.GetArgc();
+	char** argv = arguments.GetArgv();
 
 	::testing::InitGoogleTest(&argc, argv);
 
