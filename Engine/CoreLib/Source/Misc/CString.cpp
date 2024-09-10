@@ -1,4 +1,5 @@
 #include "Engine/Assert.h"
+#include "Memory/Memory.h"
 #include "Misc/CString.h"
 #include "Templates/IsInt.h"
 #include "Templates/NumericLimits.h"
@@ -19,6 +20,27 @@
 #ifndef WITH_STRINGS_HEADER
 #	define WITH_STRINGS_HEADER 0
 #endif
+
+void FCString::FCStringDeleter::Delete(char* chars)
+{
+	FMemory::Free(chars);
+}
+
+FCString::FCString(const char* chars)
+	: m_Chars { CopyCharArray(chars) }
+{
+}
+
+FCString::FCString(const FCString& other)
+	: m_Chars { CopyCharArray(other.GetChars()) }
+{
+}
+
+FCString::FCString(FCString&& other) noexcept
+	: m_Chars { MoveTemp(other.m_Chars) }
+{
+	other.m_Chars = nullptr;
+}
 
 bool FCString::IsAlpha(CharType ch)
 {
@@ -119,4 +141,49 @@ FCString::CharType FCString::ToLower(CharType ch)
 FCString::CharType FCString::ToUpper(CharType ch)
 {
 	return static_cast<CharType>(SDL_toupper(ch));
+}
+
+FCString& FCString::operator=(const FCString& other)
+{
+	if (&other == this)
+	{
+		return *this;
+	}
+
+	m_Chars.Reset();
+	m_Chars = CopyCharArray(other.GetChars());
+
+	return *this;
+}
+
+FCString& FCString::operator=(FCString&& other) noexcept
+{
+	if (&other == this)
+	{
+		return *this;
+	}
+
+	m_Chars = MoveTemp(other.m_Chars);
+
+	return *this;
+}
+
+TUniquePtr<char, FCString::FCStringDeleter> FCString::CopyCharArray(const char* chars)
+{
+	if (chars == nullptr)
+	{
+		return nullptr;
+	}
+
+	const SizeType numChars = CharTraits::GetNullTerminatedLength(chars);
+	if (numChars == 0)
+	{
+		return nullptr;
+	}
+
+	char* copyOfChars = FMemory::AllocateArray<char>(numChars + 1);
+	FMemory::Copy(copyOfChars, chars, numChars);
+	copyOfChars[numChars] = CharTraits::NullChar;
+
+	return TUniquePtr<char, FCString::FCStringDeleter> { copyOfChars };
 }

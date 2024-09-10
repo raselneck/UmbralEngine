@@ -1,20 +1,76 @@
 #pragma once
 
-#include "Engine/IntTypes.h"
+#include "Memory/UniquePtr.h"
 #include "Templates/CharTraits.h"
 #include "Templates/ComparisonTraits.h"
 
 /**
  * @brief Defines a platform-agnostic way to access C-related string functions.
  */
-class FCString
+class FCString final
 {
+	struct FCStringDeleter
+	{
+		void Delete(char* chars);
+	};
+
 public:
 
 	using CharType = char;
 	using SizeType = int32;
 	using CharTraits = TCharTraits<CharType>;
 	using StringCompareFunction = ECompareResult(*)(const CharType*, const CharType*, SizeType);
+
+	/**
+	 * @brief Sets default values for this C-string's properties.
+	 */
+	constexpr FCString() = default;
+
+	/**
+	 * @brief Copies a raw C string.
+	 *
+	 * @param chars The raw C string to copy.
+	 */
+	explicit FCString(const char* chars);
+
+	/**
+	 * @brief Copies another C string.
+	 *
+	 * @param other The C string to copy.
+	 */
+	FCString(const FCString& other);
+
+	/**
+	 * @brief Assumes ownership of another C string's resources.
+	 *
+	 * @param other The other C string.
+	 */
+	FCString(FCString&& other) noexcept;
+
+	/**
+	 * @brief Frees up any memory used by this C string.
+	 */
+	~FCString() = default;
+
+	/**
+	 * @brief Gets this string's characters.
+	 *
+	 * @return This string's characters.
+	 */
+	[[nodiscard]] const char* GetChars() const
+	{
+		return m_Chars.Get();
+	}
+
+	/**
+	 * @brief Gets this string's characters.
+	 *
+	 * @return This string's characters.
+	 */
+	[[nodiscard]] char* GetChars()
+	{
+		return m_Chars.Get();
+	}
 
 	/**
 	 * @brief Gets a value indicating whether a character is an alphabetic character.
@@ -39,6 +95,16 @@ public:
 	 * @return True if \p ch is a numeric character, otherwise false.
 	 */
 	[[nodiscard]] static bool IsNumeric(CharType ch);
+
+	/**
+	 * @brief Gets the length of this C string.
+	 *
+	 * @return The length of this C string.
+	 */
+	[[nodiscard]] SizeType Length() const
+	{
+		return CharTraits::GetNullTerminatedLength(m_Chars.Get());
+	}
 
 	/**
 	 * @brief Compares two strings, ignoring case.
@@ -143,4 +209,34 @@ public:
 	 * @return \p ch as its uppercase variant.
 	 */
 	static CharType ToUpper(CharType ch);
+
+	/**
+	 * @brief Copies another C string.
+	 *
+	 * @param other The C string to copy.
+	 * @return This C string.
+	 */
+	FCString& operator=(const FCString& other);
+
+	/**
+	 * @brief Assumes ownership of another C string's resources.
+	 *
+	 * @param other The other C string.
+	 * @return This C string.
+	 */
+	FCString& operator=(FCString&& other) noexcept;
+
+private:
+
+	/**
+	 * @brief Copies a character array.
+	 *
+	 * @param chars The character array to copy.
+	 * @return The copied character array.
+	 */
+	static TUniquePtr<char, FCStringDeleter> CopyCharArray(const char* chars);
+
+	TUniquePtr<char, FCStringDeleter> m_Chars;
 };
+
+static_assert(sizeof(FCString) == sizeof(char*), "CString must be the same size as a C string!");
