@@ -1,6 +1,54 @@
+#include "Containers/Optional.h"
+#include "Engine/CommandLine.h"
 #include "Engine/Logging.h"
 #include "HAL/EventLoop.h"
 #include <uv.h>
+
+namespace libuv
+{
+	void* Malloc(const size_t size)
+	{
+		return FMemory::Allocate(static_cast<FMemory::SizeType>(size));
+	}
+
+	void* Realloc(void* ptr, const size_t size)
+	{
+		return FMemory::Reallocate(ptr, static_cast<FMemory::SizeType>(size));
+	}
+
+	void* Calloc(const size_t count, const size_t size)
+	{
+		return FMemory::AllocateArray(static_cast<FMemory::SizeType>(count), static_cast<FMemory::SizeType>(size));
+	}
+
+	void Free(void* ptr)
+	{
+		FMemory::Free(ptr);
+	}
+
+	class FLifetimeHandler final
+	{
+	public:
+
+		FLifetimeHandler()
+			: m_Arguments { FCommandLine::GetMutableArguments() }
+		{
+			uv_replace_allocator(libuv::Malloc, libuv::Realloc, libuv::Calloc, libuv::Free);
+			uv_setup_args(m_Arguments.GetArgc(), m_Arguments.GetArgv());
+		}
+
+		~FLifetimeHandler()
+		{
+			uv_library_shutdown();
+		}
+
+	private:
+
+		FCommandLineArguments m_Arguments;
+	};
+
+	static TOptional<FLifetimeHandler> GLifetimeHandler;
+}
 
 IEventTask::~IEventTask()
 {
@@ -54,6 +102,11 @@ FEventLoop::~FEventLoop()
 
 TSharedPtr<FEventLoop> FEventLoop::Create()
 {
+	if (libuv::GLifetimeHandler.IsEmpty())
+	{
+		(void)libuv::GLifetimeHandler.EmplaceValue();
+	}
+
 	FLoopHandle loop { FMemory::AllocateObject<uv_loop_t>() };
 	uv_loop_init(loop.Get());
 	// TODO uv_loop_configure ?
@@ -69,16 +122,12 @@ void FEventLoop::PollTasks()
 		return;
 	}
 
-	uv_update_time(m_Loop.Get());
-
 	// Run the loop once without waiting for a task to be added if there are none
-	const int32 numTasksRemaining = uv_run(m_Loop.Get(), UV_RUN_NOWAIT);
-	if (m_NumLoopTasks == numTasksRemaining)
-	{
-		return;
-	}
+	uv_update_time(m_Loop.Get());
+	uv_run(m_Loop.Get(), UV_RUN_NOWAIT);
 
-	m_NumLoopTasks = numTasksRemaining;
+	// TODO Need some kind of mechanism to automatically remove tasks when they're done, especially
+	//      since not every task will be guaranteed to run inside of libuv
 	m_Tasks.RemoveByPredicate([](const TSharedPtr<IEventTask>& task)
 	{
 		return task->IsRunning() == false;

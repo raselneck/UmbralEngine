@@ -135,6 +135,16 @@ public:
 	}
 
 	/**
+	 * @brief Checks to see if this event loop is running.
+	 *
+	 * @return True if this event loop is running, otherwise false.
+	 */
+	[[nodiscard]] bool IsRunning() const
+	{
+		return m_Tasks.Num() > 0;
+	}
+
+	/**
 	 * @brief Gets the number of tasks being run in this event loop.
 	 *
 	 * @return The number of tasks being run in this event loop.
@@ -172,5 +182,4 @@ private:
 
 	TArray<TSharedPtr<IEventTask>> m_Tasks;
 	FLoopHandle m_Loop;
-	int32 m_NumLoopTasks = 0;
 };

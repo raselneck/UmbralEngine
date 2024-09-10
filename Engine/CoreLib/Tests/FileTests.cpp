@@ -14,24 +14,24 @@ TEST(FileTests, ReadTextAsync)
 	const FString filePath { UMBRAL_FILE_AS_VIEW };
 	const FTimePoint fileReadStart = FTimePoint::Now();
 	FFile::ReadTextAsync(filePath, eventLoop,
-		[](FString content)
+		[=](const FString content)
 		{
-			UM_LOG(Info, "File contents:\n{}", content.AsStringView());
+			UM_LOG(Info, "Read {} characters from file \"{}\"", content.Length(), filePath);
 		},
-		[](FError error)
+		[](const FError error)
 		{
 			UM_LOG(Info, "Read file error: {}", error.GetMessage());
 		}
 	);
 
-	while (eventLoop->NumTasks() > 0)
+	while (eventLoop->IsRunning())
 	{
 		eventLoop->PollTasks();
 	}
 
 	const FTimePoint fileReadEnd = FTimePoint::Now();
 	const FTimeSpan fileReadDuration = fileReadEnd - fileReadStart;
-	UM_LOG(Info, "Took {} ms to read file \"{}\"", fileReadDuration.GetTotalMilliseconds(), filePath.AsStringView());
+	UM_LOG(Info, "Took {} ms to async read file \"{}\"", fileReadDuration.GetTotalMilliseconds(), filePath.AsStringView());
 }
 
 // TODO Stat a file that does not exist
@@ -56,7 +56,7 @@ TEST(FileTests, StatFileAsync)
 		}
 	);
 
-	while (eventLoop->NumTasks() > 0)
+	while (eventLoop->IsRunning())
 	{
 		eventLoop->PollTasks();
 	}
