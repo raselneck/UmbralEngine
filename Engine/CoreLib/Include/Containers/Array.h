@@ -166,6 +166,21 @@ public:
 	}
 
 	/**
+	 * @brief Creates a new array, copying values from a span.
+	 *
+	 * @param elements The span elements.
+	 */
+	explicit TArray(const TSpan<const ElementType> elements)
+	{
+		if (elements.IsEmpty())
+		{
+			return;
+		}
+
+		Append(elements);
+	}
+
+	/**
 	 * @brief Creates a new array from an initializer list.
 	 *
 	 * @param initializer The initializer list.
