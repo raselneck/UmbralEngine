@@ -27,7 +27,7 @@
  * TODO This could be increased to int64 max minus one if containers size types were 64-bit
  * TODO Maybe because of the above, containers should use ssize for their size type?
  */
-static constexpr int64 GMaxFileLength = TNumericLimits<int32>::MaxValue - 1;
+static constexpr int64 GMaxFileLength = TNumericLimits<FString::SizeType>::MaxValue - 1;
 
 [[maybe_unused]] static void DebugPrintFileStats(const FStringView fileName, const FFileStats& stats)
 {
@@ -81,42 +81,40 @@ public:
 	 * @brief Starts the task.
 	 */
 	virtual void StartTask() = 0;
-};
 
-// TODO Figure out some way that we can include the below two functions inside of TFileTask. Doing so and attempting to use TFileTask static functions
-//      in a child class currently throws compiler errors. I think the errors may have something to do with the function being inlined at compile time?
+protected:
 
-/**
-	 * @brief Dispatches a libuv request.
-	 *
-	 * @tparam Callback The member function callback.
-	 * @param handle The request handle.
- */
-template<typename T, void(T::*Callback)()>
-static void DispatchRequest(uv_fs_t* handle)
-{
-	T* task = reinterpret_cast<T*>(handle->data);
-	(task->*Callback)();
-}
+	/**
+ * @brief Dispatches a libuv request.
+ *
+ * @tparam Callback The member function callback.
+ * @param handle The request handle.
+	 */
+	template<void(T::*Callback)()>
+	static void DispatchRequest(uv_fs_t* handle)
+	{
+		T* task = reinterpret_cast<T*>(handle->data);
+		(task->*Callback)();
+	}
 
-/**
+	/**
 	 * @brief Creates a new libuv file request handle.
 	 *
 	 * @param ownerTask The owner task.
 	 * @return The file request handle.
- */
-template<typename T>
-static typename TFileTask<T>::FRequestHandle MakeRequest(T* ownerTask)
-{
-	using RequestHandleType = typename TFileTask<T>::FRequestHandle;
+	 */
+	static FRequestHandle MakeRequest(T* ownerTask)
+	{
+		using RequestHandleType = typename TFileTask<T>::FRequestHandle;
 
-	RequestHandleType result { FMemory::AllocateObject<uv_fs_t>() };
-	FMemory::ZeroOut(result.Get(), sizeof(uv_fs_t));
+		RequestHandleType result { FMemory::AllocateObject<uv_fs_t>() };
+		FMemory::ZeroOut(result.Get(), sizeof(uv_fs_t));
 
-	result->data = ownerTask;
+		result->data = ownerTask;
 
-	return result;
-}
+		return result;
+	}
+};
 
 /**
  * @brief Defines an async task for reading a file.
@@ -184,10 +182,10 @@ public:
 	/** @inheritdoc TFileTask::StartTask */
 	virtual void StartTask() override
 	{
-		m_OpenRequest = MakeRequest(this);
+		m_OpenRequest = Super::MakeRequest(this);
 
 		uv_loop_t* loop = GetEventLoop()->GetLoop();
-		uv_fs_cb callback = DispatchRequest<ThisClass, &ThisClass::OnOpen>;
+		uv_fs_cb callback = Super::template DispatchRequest<&ThisClass::OnOpen>;
 		uv_fs_open(loop, m_OpenRequest.Get(), m_FilePath.GetChars(), UV_FS_O_RDONLY, 0, callback);
 	}
 
@@ -213,11 +211,11 @@ private:
 		else
 		{
 			m_FileHandle = static_cast<uv_file>(m_OpenRequest->result);
-			m_ReadRequest = MakeRequest(this);
+			m_ReadRequest = Super::MakeRequest(this);
 			m_ReadBuffer = MakeUnique<FRequestBuffer>();
 
 			uv_loop_t* loop = GetEventLoop()->GetLoop();
-			uv_fs_cb callback = DispatchRequest<ThisClass, &ThisClass::OnRead>;
+			uv_fs_cb callback = Super::template DispatchRequest<&ThisClass::OnRead>;
 			uv_fs_read(loop, m_ReadRequest.Get(), m_FileHandle, &m_ReadBuffer->Buffer, 1, -1, callback);
 		}
 
@@ -248,10 +246,10 @@ private:
 		else if (m_ReadRequest->result == 0)
 		{
 			m_ReadRequest.Reset();
-			m_CloseRequest = MakeRequest(this);
+			m_CloseRequest = Super::MakeRequest(this);
 
 			uv_loop_t* loop = GetEventLoop()->GetLoop();
-			uv_fs_cb callback = DispatchRequest<ThisClass, &ThisClass::OnClose>;
+			uv_fs_cb callback = Super::template DispatchRequest<&ThisClass::OnClose>;
 			uv_fs_close(loop, m_CloseRequest.Get(), m_FileHandle, callback);
 		}
 		else
@@ -263,7 +261,7 @@ private:
 			FMemory::ZeroOutArray(m_ReadBuffer->BufferData.m_Data);
 
 			uv_loop_t* loop = GetEventLoop()->GetLoop();
-			uv_fs_cb callback = DispatchRequest<ThisClass, &ThisClass::OnRead>;
+			uv_fs_cb callback = Super::template DispatchRequest<&ThisClass::OnRead>;
 			uv_fs_read(loop, m_ReadRequest.Get(), m_FileHandle, &m_ReadBuffer->Buffer, 1, -1, callback);
 		}
 	}
@@ -335,7 +333,7 @@ public:
 		m_StatRequest = MakeRequest(this);
 
 		uv_loop_t* loop = GetEventLoop()->GetLoop();
-		uv_fs_cb callback = DispatchRequest<ThisClass, &ThisClass::OnStat>;
+		uv_fs_cb callback = DispatchRequest<&ThisClass::OnStat>;
 		uv_fs_stat(loop, m_StatRequest.Get(), m_FilePath.GetChars(), callback);
 	}
 
@@ -394,6 +392,119 @@ private:
 	FFile::FErrorCallback m_ErrorCallback;
 	FRequestHandle m_StatRequest;
 	FString m_FilePath;
+};
+
+template<typename T>
+struct TDataBufferInitializer;
+
+template<>
+struct TDataBufferInitializer<FString>
+{
+	static uv_buf_t Initialize(FString& data)
+	{
+		return uv_buf_init(data.GetChars(), static_cast<size_t>(data.Length()));
+	}
+};
+
+template<>
+struct TDataBufferInitializer<TArray<uint8>>
+{
+	static uv_buf_t Initialize(TArray<uint8>& data)
+	{
+		return uv_buf_init(reinterpret_cast<char*>(data.GetData()), static_cast<size_t>(data.Num()));
+	}
+};
+
+/**
+ * @brief Defines an async task for writing to a file.
+ *
+ * @tparam DataType The type of the data being written.
+ */
+template<typename DataType>
+class TWriteFileTask : public TFileTask<TWriteFileTask<DataType>>
+{
+public:
+
+	/**
+	 * @brief Sets values for this task's properties.
+	 *
+	 * @tparam DataInitializerType The type of \p data, used to initialize m_Data.
+	 * @param filePath The path to the file.
+	 * @param data The data to write.
+	 * @param callback The function to call once the task is complete.
+	 */
+	template<typename DataInitializerType>
+	TWriteFileTask(const FStringView filePath, const DataInitializerType data, FFile::FWriteCallback callback)
+		: m_Callback { MoveTemp(callback) }
+		, m_Data { data }
+		, m_FilePath { filePath }
+	{
+		m_DataBuffer = TDataBufferInitializer<DataType>::Initialize(m_Data);
+	}
+
+	/**
+	 * @brief Destroys this task.
+	 */
+	virtual ~TWriteFileTask() override = default;
+
+	/** @inheritdoc IEventTask::IsRunning */
+	[[nodiscard]] virtual bool IsRunning() const override
+	{
+		return m_FilePath.Length() > 0;
+	}
+
+	/** @inheritdoc TFileTask::StartTask */
+	virtual void StartTask() override
+	{
+	}
+
+private:
+
+	FFile::FWriteCallback m_Callback;
+	DataType m_Data;
+	uv_buf_t m_DataBuffer;
+	FString m_FilePath;
+};
+
+using FWriteFileBytesTask = TWriteFileTask<TArray<uint8>>;
+using FWriteFileTextTask = TWriteFileTask<FString>;
+
+// TODO FWriteFileLinesTask, and use a TStaticArray of eight total buffers. Four for lines and four for newline strings, interlaced
+
+class FWriteFileLinesTask : public TFileTask<FWriteFileLinesTask>
+{
+public:
+
+	FWriteFileLinesTask(const FStringView filePath, TArray<FString> lines, FFile::FWriteCallback callback)
+		: m_Lines { MoveTemp(lines) }
+		, m_Callback { MoveTemp(callback) }
+		, m_FilePath { filePath }
+	{
+	}
+
+	/**
+	 * @brief Destroys this task.
+	 */
+	virtual ~FWriteFileLinesTask() override = default;
+
+	/** @inheritdoc IEventTask::IsRunning */
+	[[nodiscard]] virtual bool IsRunning() const override
+	{
+		return m_FilePath.Length() > 0;
+	}
+
+	/** @inheritdoc TFileTask::StartTask */
+	virtual void StartTask() override
+	{
+	}
+
+private:
+
+	TStaticArray<uv_buf_t, 8> m_DataBuffers;
+	TArray<FString> m_Lines;
+	FFile::FWriteCallback m_Callback;
+	FString m_FilePath;
+	int32 m_LineIndex = 0;
 };
 
 TErrorOr<void> FFile::Delete(FStringView filePathAsView)
@@ -600,8 +711,6 @@ void FFile::Stat(const FString& fileName, FFileStats& stats)
 {
 	stats = {};
 	FNativeFile::StatFile(fileName, stats);
-
-	//DebugPrintFileStats(fileName, stats);
 }
 
 void FFile::StatAsync(const FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FStatCallback callback, FErrorCallback errorCallback)
@@ -649,6 +758,30 @@ TErrorOr<void> FFile::WriteBytes(const FStringView filePath, const TSpan<const u
 	return {};
 }
 
+void FFile::WriteBytesAsync(const FStringView filePath, const TSpan<const uint8> bytes, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback)
+{
+	if (eventLoop.IsNull())
+	{
+		if (callback.IsValid())
+		{
+			callback.Invoke(MAKE_ERROR("Given null event loop when writing bytes to file"));
+		}
+		else
+		{
+			UM_LOG(Error, "Given null event loop when writing bytes to file \"{}\"", filePath);
+		}
+		return;
+	}
+
+	if (callback.IsValid() == false)
+	{
+		callback = [](TErrorOr<void>) {};
+	}
+
+	TSharedPtr<FWriteFileBytesTask> task = eventLoop->AddTask<FWriteFileBytesTask>(filePath, bytes, MoveTemp(callback));
+	task->StartTask();
+}
+
 TErrorOr<void> FFile::WriteLines(const FStringView filePath, const TSpan<const FString> lines)
 {
 	TSharedPtr<IFileStream> fileStream = FFileSystem::OpenWrite(filePath);
@@ -666,6 +799,30 @@ TErrorOr<void> FFile::WriteLines(const FStringView filePath, const TSpan<const F
 	return {};
 }
 
+void FFile::WriteLinesAsync(FStringView filePath, TArray<FString> lines, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback)
+{
+	if (eventLoop.IsNull())
+	{
+		if (callback.IsValid())
+		{
+			callback.Invoke(MAKE_ERROR("Given null event loop when writing lines to file"));
+		}
+		else
+		{
+			UM_LOG(Error, "Given null event loop when writing lines to file \"{}\"", filePath);
+		}
+		return;
+	}
+
+	if (callback.IsValid() == false)
+	{
+		callback = [](TErrorOr<void>) {};
+	}
+
+	TSharedPtr<FWriteFileLinesTask> task = eventLoop->AddTask<FWriteFileLinesTask>(filePath, MoveTemp(lines), MoveTemp(callback));
+	task->StartTask();
+}
+
 TErrorOr<void> FFile::WriteText(const FStringView filePath, const FStringView text)
 {
 	TSharedPtr<IFileStream> fileStream = FFileSystem::OpenWrite(filePath);
@@ -677,4 +834,28 @@ TErrorOr<void> FFile::WriteText(const FStringView filePath, const FStringView te
 	fileStream->Write(text);
 
 	return {};
+}
+
+void FFile::WriteTextAsync(const FStringView filePath, const FStringView text, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback)
+{
+	if (eventLoop.IsNull())
+	{
+		if (callback.IsValid())
+		{
+			callback.Invoke(MAKE_ERROR("Given null event loop when writing text to file"));
+		}
+		else
+		{
+			UM_LOG(Error, "Given null event loop when writing text to file \"{}\"", filePath);
+		}
+		return;
+	}
+
+	if (callback.IsValid() == false)
+	{
+		callback = [](TErrorOr<void>) {};
+	}
+
+	TSharedPtr<FWriteFileTextTask> task = eventLoop->AddTask<FWriteFileTextTask>(filePath, text, MoveTemp(callback));
+	task->StartTask();
 }
