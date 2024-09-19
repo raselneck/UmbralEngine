@@ -178,16 +178,6 @@ public:
 	static void Stat(const FString& fileName, FFileStats& stats);
 
 	/**
-	 * @brief Attempts to stat a file asynchronously.
-	 *
-	 * @param filePath The path to the file.
-	 * @param eventLoop The event loop to queue the stat operation to.
-	 * @param callback The function to call once stat-ing is complete.
-	 * @param errorCallback The function to call if an error occurs.
-	 */
-	static void StatAsync(FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FStatCallback callback, FErrorCallback errorCallback);
-
-	/**
 	 * @brief Attempts to stat a file.
 	 *
 	 * @param fileName The name of the file.
@@ -214,6 +204,15 @@ public:
 	}
 
 	/**
+	 * @brief Attempts to stat a file asynchronously.
+	 *
+	 * @param filePath The path to the file.
+	 * @param eventLoop The event loop to queue the stat operation to.
+	 * @param callback The function to call once stat-ing is complete.
+	 */
+	static void StatAsync(FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FStatCallback callback);
+
+	/**
 	 * @brief Writes an array of bytes to a file.
 	 *
 	 * @param filePath The file path.
@@ -231,6 +230,16 @@ public:
 	 * @param callback The function to call once writing is complete.
 	 */
 	static void WriteBytesAsync(FStringView filePath, TSpan<const uint8> bytes, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback);
+
+	/**
+	 * @brief Writes an array of bytes to a file asynchronously.
+	 *
+	 * @param filePath The path to the file.
+	 * @param bytes The bytes to write. Would be best to move ownership of the bytes to the async task to avoid copying.
+	 * @param eventLoop The event loop to queue the async task in.
+	 * @param callback The function to call once writing is complete.
+	 */
+	static void WriteBytesAsync(FStringView filePath, TArray<uint8> bytes, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback);
 
 	/**
 	 * @brief Writes an array of strings as lines to a file.
@@ -269,4 +278,14 @@ public:
 	 * @param callback The function to call once writing is complete.
 	 */
 	static void WriteTextAsync(FStringView filePath, FStringView text, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback);
+
+	/**
+	 * @brief Writes a string to a file asynchronously.
+	 *
+	 * @param filePath The path to the file.
+	 * @param text The string to write. Would be best to move ownership of the text to the async task to avoid copying.
+	 * @param eventLoop The event loop to queue the async task in.
+	 * @param callback The function to call once writing is complete.
+	 */
+	static void WriteTextAsync(FStringView filePath, FString text, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback);
 };

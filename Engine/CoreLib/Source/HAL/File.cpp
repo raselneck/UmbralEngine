@@ -309,9 +309,8 @@ public:
 	 * @param callback The function to call when complete.
 	 * @param errorCallback The function to call when an error is encountered.
 	 */
-	FStatFileTask(const FStringView filePath, FFile::FStatCallback callback, FFile::FErrorCallback errorCallback)
+	FStatFileTask(const FStringView filePath, FFile::FStatCallback callback)
 		: m_CompleteCallback { MoveTemp(callback) }
-		, m_ErrorCallback { MoveTemp(errorCallback) }
 		, m_FilePath { filePath }
 	{
 	}
@@ -389,7 +388,6 @@ private:
 	}
 
 	FFile::FStatCallback m_CompleteCallback;
-	FFile::FErrorCallback m_ErrorCallback;
 	FRequestHandle m_StatRequest;
 	FString m_FilePath;
 };
@@ -433,10 +431,9 @@ public:
 	 * @param data The data to write.
 	 * @param callback The function to call once the task is complete.
 	 */
-	template<typename DataInitializerType>
-	TWriteFileTask(const FStringView filePath, const DataInitializerType data, FFile::FWriteCallback callback)
+	TWriteFileTask(const FStringView filePath, DataType data, FFile::FWriteCallback callback)
 		: m_Callback { MoveTemp(callback) }
-		, m_Data { data }
+		, m_Data { MoveTemp(data) }
 		, m_FilePath { filePath }
 	{
 		m_DataBuffer = TDataBufferInitializer<DataType>::Initialize(m_Data);
@@ -469,10 +466,14 @@ private:
 using FWriteFileBytesTask = TWriteFileTask<TArray<uint8>>;
 using FWriteFileTextTask = TWriteFileTask<FString>;
 
-// TODO FWriteFileLinesTask, and use a TStaticArray of eight total buffers. Four for lines and four for newline strings, interlaced
-
+/**
+ * @brief Defines an async task for writing a collection of lines to a file.
+ */
 class FWriteFileLinesTask : public TFileTask<FWriteFileLinesTask>
 {
+	using Super = TFileTask<FWriteFileLinesTask>;
+	using ThisClass = FWriteFileLinesTask;
+
 public:
 
 	FWriteFileLinesTask(const FStringView filePath, TArray<FString> lines, FFile::FWriteCallback callback)
@@ -496,14 +497,107 @@ public:
 	/** @inheritdoc TFileTask::StartTask */
 	virtual void StartTask() override
 	{
+		m_OpenRequest = Super::MakeRequest(this);
+
+		uv_loop_t* loop = GetEventLoop()->GetLoop();
+		uv_fs_cb callback = Super::template DispatchRequest<&ThisClass::OnOpen>;
+		uv_fs_open(loop, m_OpenRequest.Get(), m_FilePath.GetChars(), UV_FS_O_CREAT | UV_FS_O_TRUNC | UV_FS_O_WRONLY, 0, callback);
 	}
 
 private:
 
-	TStaticArray<uv_buf_t, 8> m_DataBuffers;
+	static inline char NewLineChar = '\n';
+
+	/**
+	 * @brief Called when the associated file is closed.
+	 */
+	void OnClose()
+	{
+		m_CloseRequest.Reset();
+		m_FilePath.Reset();
+		m_FileHandle = INDEX_NONE;
+
+		// TODO Check for errors
+		m_Callback({});
+	}
+
+	/**
+	 * @brief Called when the associated file is opened.
+	 */
+	void OnOpen()
+	{
+		if (m_OpenRequest->result < 0)
+		{
+			const FStringView errorString { uv_strerror(static_cast<int32>(m_OpenRequest->result)) };
+			if (m_Callback.IsValid())
+			{
+				m_Callback(MAKE_ERROR("{}", errorString));
+			}
+			else
+			{
+				UM_LOG(Error, "Failed to open file \"{}\" asynchronously. Reason: {}", m_FilePath, errorString);
+			}
+
+			m_FilePath.Reset();
+		}
+		else
+		{
+			m_FileHandle = static_cast<uv_file>(m_OpenRequest->result);
+			m_WriteRequest = Super::MakeRequest(this);
+
+			m_LineBuffers.AddZeroed(m_Lines.Num() * 2);
+			for (int32 idx = 0; idx < m_Lines.Num(); ++idx)
+			{
+				m_LineBuffers[idx * 2 + 0] = uv_buf_init(m_Lines[idx].GetChars(), static_cast<uint32>(m_Lines[idx].Length()));
+				m_LineBuffers[idx * 2 + 1] = uv_buf_init(&NewLineChar, 1);
+			}
+
+			uv_loop_t* loop = GetEventLoop()->GetLoop();
+			uv_fs_cb callback = Super::template DispatchRequest<&ThisClass::OnWrite>;
+			uv_fs_write(loop, m_WriteRequest.Get(), m_FileHandle, m_LineBuffers.GetData(), static_cast<uint32>(m_LineBuffers.Num()), 0, callback);
+		}
+
+		m_OpenRequest.Reset();
+	}
+
+	/**
+	 * @brief Called when the associated file has had some lines written to it.
+	 */
+	void OnWrite()
+	{
+		uv_fs_req_cleanup(m_WriteRequest.Get());
+
+		if (m_WriteRequest->result < 0)
+		{
+			const FStringView errorString { uv_strerror(static_cast<int32>(m_WriteRequest->result)) };
+			m_WriteRequest.Reset();
+
+			if (m_Callback.IsValid())
+			{
+				m_Callback(MAKE_ERROR("{}", errorString));
+			}
+			else
+			{
+				UM_LOG(Error, "Failed to write to file \"{}\". Reason: {}", m_FilePath, errorString);
+			}
+		}
+
+		m_WriteRequest.Reset();
+		m_CloseRequest = Super::MakeRequest(this);
+
+		uv_loop_t* loop = GetEventLoop()->GetLoop();
+		uv_fs_cb callback = Super::template DispatchRequest<&ThisClass::OnClose>;
+		uv_fs_close(loop, m_CloseRequest.Get(), m_FileHandle, callback);
+	}
+
 	TArray<FString> m_Lines;
+	TArray<uv_buf_t> m_LineBuffers;
 	FFile::FWriteCallback m_Callback;
+	FRequestHandle m_OpenRequest;
+	FRequestHandle m_WriteRequest;
+	FRequestHandle m_CloseRequest;
 	FString m_FilePath;
+	uv_file m_FileHandle = INDEX_NONE;
 	int32 m_LineIndex = 0;
 };
 
@@ -713,35 +807,21 @@ void FFile::Stat(const FString& fileName, FFileStats& stats)
 	FNativeFile::StatFile(fileName, stats);
 }
 
-void FFile::StatAsync(const FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FStatCallback callback, FErrorCallback errorCallback)
+void FFile::StatAsync(const FStringView filePath, const TSharedPtr<FEventLoop>& eventLoop, FStatCallback callback)
 {
 	if (eventLoop.IsNull())
 	{
-		if (errorCallback.IsValid())
-		{
-			errorCallback.Invoke(MAKE_ERROR("Given null event loop when stat-ing file"));
-		}
-		else
-		{
-			UM_LOG(Error, "Given null event loop when stat-ing file \"{}\"", filePath);
-		}
+		UM_LOG(Error, "Given null event loop when stat-ing file \"{}\"", filePath);
 		return;
 	}
 
 	if (callback.IsValid() == false)
 	{
-		if (errorCallback.IsValid())
-		{
-			errorCallback.Invoke(MAKE_ERROR("Given null stat callback"));
-		}
-		else
-		{
-			UM_LOG(Error, "Given null stat callback when reading file \"{}\"", filePath);
-		}
+		UM_LOG(Error, "Given null stat callback when reading file \"{}\"", filePath);
 		return;
 	}
 
-	TSharedPtr<FStatFileTask> task = eventLoop->AddTask<FStatFileTask>(filePath, MoveTemp(callback), MoveTemp(errorCallback));
+	TSharedPtr<FStatFileTask> task = eventLoop->AddTask<FStatFileTask>(filePath, MoveTemp(callback));
 	task->StartTask();
 }
 
@@ -759,6 +839,12 @@ TErrorOr<void> FFile::WriteBytes(const FStringView filePath, const TSpan<const u
 }
 
 void FFile::WriteBytesAsync(const FStringView filePath, const TSpan<const uint8> bytes, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback)
+{
+	TArray<uint8> bytesAsArray { bytes };
+	WriteBytesAsync(filePath, MoveTemp(bytesAsArray), eventLoop, MoveTemp(callback));
+}
+
+void FFile::WriteBytesAsync(const FStringView filePath, TArray<uint8> bytes, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback)
 {
 	if (eventLoop.IsNull())
 	{
@@ -778,7 +864,7 @@ void FFile::WriteBytesAsync(const FStringView filePath, const TSpan<const uint8>
 		callback = [](TErrorOr<void>) {};
 	}
 
-	TSharedPtr<FWriteFileBytesTask> task = eventLoop->AddTask<FWriteFileBytesTask>(filePath, bytes, MoveTemp(callback));
+	TSharedPtr<FWriteFileBytesTask> task = eventLoop->AddTask<FWriteFileBytesTask>(filePath, MoveTemp(bytes), MoveTemp(callback));
 	task->StartTask();
 }
 
@@ -838,6 +924,12 @@ TErrorOr<void> FFile::WriteText(const FStringView filePath, const FStringView te
 
 void FFile::WriteTextAsync(const FStringView filePath, const FStringView text, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback)
 {
+	FString textAsString { text };
+	WriteTextAsync(filePath, MoveTemp(textAsString), eventLoop, MoveTemp(callback));
+}
+
+void FFile::WriteTextAsync(const FStringView filePath, FString text, const TSharedPtr<FEventLoop>& eventLoop, FWriteCallback callback)
+{
 	if (eventLoop.IsNull())
 	{
 		if (callback.IsValid())
@@ -856,6 +948,6 @@ void FFile::WriteTextAsync(const FStringView filePath, const FStringView text, c
 		callback = [](TErrorOr<void>) {};
 	}
 
-	TSharedPtr<FWriteFileTextTask> task = eventLoop->AddTask<FWriteFileTextTask>(filePath, text, MoveTemp(callback));
+	TSharedPtr<FWriteFileTextTask> task = eventLoop->AddTask<FWriteFileTextTask>(filePath, MoveTemp(text), MoveTemp(callback));
 	task->StartTask();
 }
