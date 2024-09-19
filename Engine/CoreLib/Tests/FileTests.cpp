@@ -49,10 +49,6 @@ TEST(FileTests, StatFileAsync)
 		[&](FFileStats stats)
 		{
 			fileStats = MoveTemp(stats);
-		},
-		[](const FError error)
-		{
-			UM_LOG(Info, "Stat file error: {}", error.GetMessage());
 		}
 	);
 
