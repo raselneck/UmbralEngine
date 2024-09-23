@@ -9,6 +9,7 @@
 #include "Graphics/VertexBuffer.h"
 #include "HAL/File.h"
 #include "HAL/Path.h"
+#include "Misc/StringBuilder.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -374,8 +375,46 @@ TErrorOr<void> UStaticMesh::LoadFromMemory(const void* bytes, const int32 numByt
 	return LoadFromScene(importedScene, fileHint);
 }
 
+// TODO This could be a useful function to expose elsewhere. Maybe just FString::JoinArray ?
+template<typename T, size_t N>
+static FString NativeArrayToString(const T (&array)[N])
+{
+	FStringBuilder result;
+	result.Reserve(static_cast<FStringBuilder::SizeType>(N * 10) + 2);
+
+	result.Append('[');
+	bool first = true;
+	for (size_t idx = 0; idx < N; ++idx)
+	{
+		if (first)
+		{
+			first = false;
+		}
+		else
+		{
+			result.Append(", "_sv);
+		}
+
+		result.Append(array[idx]);
+	}
+	result.Append(']');
+
+	return result.ReleaseString();
+}
+
 TErrorOr<void> UStaticMesh::LoadFromScene(const struct aiScene* scene, const FStringView fileName)
 {
+	UM_LOG(Info, "Scene data for file \"{}\":\n\tNum Animations = {}\n\tNum Cameras = {}\n\tNum Lights = {}\n\tNum Materials = {}\n\tNum Meshes = {}\n\tNum Skeletons = {}\n\tNum Textures = {}",
+		fileName,
+		scene->mNumAnimations,
+		scene->mNumCameras,
+		scene->mNumLights,
+		scene->mNumMaterials,
+		scene->mNumMeshes,
+		scene->mNumSkeletons,
+		scene->mNumTextures
+	);
+
 	if (scene->mNumMeshes == 0)
 	{
 		return MAKE_ERROR("Found no meshes in file \"{}\"", fileName);
@@ -394,6 +433,17 @@ TErrorOr<void> UStaticMesh::LoadFromScene(const struct aiScene* scene, const FSt
 	{
 		return MAKE_ERROR("Found no vertices in file \"{}\"", fileName);
 	}
+
+	UM_LOG(Info, "Primary mesh data for file \"{}\":\n\tNum Anim Meshes = {}\n\tNum Bones = {}\n\tNum Color Channels = {}\n\tNum Faces = {}\n\tNum UV Channels = {}\n\tNum UV Components = {}\n\tNum Vertices = {}",
+		fileName,
+		mesh->mNumAnimMeshes,
+		mesh->mNumBones,
+		mesh->GetNumColorChannels(),
+		mesh->mNumFaces,
+		mesh->GetNumUVChannels(),
+		NativeArrayToString(mesh->mNumUVComponents),
+		mesh->mNumVertices
+	);
 
 	TObjectPtr<UGraphicsDevice> graphicsDevice = GetGraphicsDevice();
 	m_VertexBuffer = graphicsDevice->CreateVertexBuffer(EVertexBufferUsage::Static);
