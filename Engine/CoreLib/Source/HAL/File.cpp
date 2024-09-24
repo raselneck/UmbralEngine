@@ -250,6 +250,9 @@ struct TDataBufferInitializer<TArray<uint8>>
 template<typename DataType>
 class TWriteFileTask : public FFileTask
 {
+	using ThisClass = TWriteFileTask;
+	using Super = FFileTask;
+
 public:
 
 	/**
@@ -277,16 +280,69 @@ public:
 		return GetFilePath().Length() > 0;
 	}
 
+	/**
+	 * @brief Begins writing data to the given file.
+	 *
+	 * @param filePath The path to the file.
+	 */
 	void WriteToFile(const FStringView filePath)
 	{
-		(void)filePath;
+		constexpr int32 openFlags = O_CREAT | O_TRUNC | O_WRONLY;
+		constexpr int32 openMode = S_IRUSR | S_IWUSR;
+		OpenFile(filePath, openFlags, openMode);
 	}
 
 private:
 
+	virtual void OnError(FError error) override
+	{
+		if (m_Callback.IsValid())
+		{
+			m_Callback(MoveTemp(error));
+		}
+		else
+		{
+			// TODO Need to log some more context here
+			UM_LOG(Error, "{}", error.GetMessage());
+		}
+	}
+
+	virtual void OnFileClosed() override
+	{
+		// TODO Check for errors
+		m_Callback({});
+	}
+
+	virtual void OnFileOpened() override
+	{
+		m_WriteRequest = MakeRequest();
+
+		uv_loop_t* loop = GetLoop();
+		uv_fs_cb callback = DispatchRequestCallback<ThisClass, &ThisClass::OnWrite>;
+		uv_fs_write(loop, m_WriteRequest.Get(), GetFileHandle(), &m_DataBuffer, 1, 0, callback);
+	}
+
+	/**
+	 * @brief Called when the associated file has had some lines written to it.
+	 */
+	void OnWrite()
+	{
+		const int64 result = m_WriteRequest->result;
+		m_WriteRequest.Reset();
+
+		if (result < 0)
+		{
+			const FStringView errorString { uv_strerror(static_cast<int32>(result)) };
+			OnError(MAKE_ERROR("{}", errorString));
+		}
+
+		CloseFile();
+	}
+
 	FFile::FWriteCallback m_Callback;
 	DataType m_Data;
 	uv_buf_t m_DataBuffer;
+	FRequestHandle m_WriteRequest;
 };
 
 using FWriteFileBytesTask = TWriteFileTask<TArray<uint8>>;
@@ -375,17 +431,14 @@ private:
 	 */
 	void OnWrite()
 	{
-		uv_fs_req_cleanup(m_WriteRequest.Get());
+		const int64 result = m_WriteRequest->result;
+		m_WriteRequest.Reset();
 
-		if (m_WriteRequest->result < 0)
+		if (result < 0)
 		{
-			const FStringView errorString { uv_strerror(static_cast<int32>(m_WriteRequest->result)) };
-			m_WriteRequest.Reset();
-
+			const FStringView errorString { uv_strerror(static_cast<int32>(result)) };
 			OnError(MAKE_ERROR("{}", errorString));
 		}
-
-		m_WriteRequest.Reset();
 
 		CloseFile();
 	}
