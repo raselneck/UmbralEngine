@@ -187,6 +187,8 @@ set(UMBRAL_CORE_LIB_SOURCES
 	"Source/HAL/File.cpp"
 	"Source/HAL/FileStream.cpp"
 	"Source/HAL/FileSystem.cpp"
+	"Source/HAL/FileTask.cpp"
+	"Source/HAL/FileTask.h"
 	"Source/HAL/InternalTime.cpp"
 	"Source/HAL/InternalTime.h"
 	"Source/HAL/Path.cpp"
