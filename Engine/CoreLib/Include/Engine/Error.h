@@ -3,6 +3,7 @@
 #include "Containers/Optional.h"
 #include "Containers/Variant.h"
 #include "Containers/String.h"
+#include "Memory/SharedPtr.h"
 #include "Misc/SourceLocation.h"
 #include "Misc/StringBuilder.h"
 #include "Templates/IsSame.h"
@@ -103,6 +104,42 @@ public:
 	}
 
 	/**
+	 * @brief Constructs this error's inner error in place.
+	 *
+	 * @tparam ArgTypes
+	 * @param location The error's source location.
+	 * @param messageFormat The error message.
+	 * @param messageArgs The format arguments for the error message.
+	 * @return The inner error.
+	 */
+	template<typename... ArgTypes>
+	[[maybe_unused]] TError& EmplaceInnerError(SourceLocationType location, const FStringView messageFormat, ArgTypes&&... messageArgs)
+	{
+		SetInnerError(Format(location, messageFormat, Forward<ArgTypes>(messageArgs)...));
+		return GetInnerError();
+	}
+
+	/**
+	 * @brief Gets the inner error.
+	 *
+	 * @return The inner error, or null if there is none.
+	 */
+	[[nodiscard]] const TError* GetInnerError() const
+	{
+		return m_InnerError.Get();
+	}
+
+	/**
+	 * @brief Gets the inner error.
+	 *
+	 * @return The inner error, or null if there is none.
+	 */
+	[[nodiscard]] TError* GetInnerError()
+	{
+		return m_InnerError.Get();
+	}
+
+	/**
 	 * @brief Gets this error's message.
 	 *
 	 * @return This error's message.
@@ -122,10 +159,40 @@ public:
 		return m_Location;
 	}
 
+	/**
+	 * @brief Checks to see if this error has an inner error.
+	 *
+	 * @return True if this error has an inner error, otherwise false.
+	 */
+	[[nodiscard]] bool HasInnerError() const
+	{
+		return m_InnerError.IsValid();
+	}
+
+	/**
+	 * @brief Sets the inner error.
+	 *
+	 * @param innerError The inner error.
+	 */
+	void SetInnerError(const TError& innerError)
+	{
+		m_InnerError = MakeShared<TError>(innerError);
+	}
+
+	/**
+	 * @brief Sets the inner error.
+	 *
+	 * @param innerError The inner error.
+	 */
+	void SetInnerError(TError&& innerError)
+	{
+		m_InnerError = MakeShared<TError>(MoveTemp(innerError));
+	}
+
 private:
 
-	// TODO Support inner errors
-
+	// TODO(FIXME) It's odd that we're using a shared pointer for the inner error, but doing so allows errors to be copied. May be a better solution?
+	TSharedPtr<TError> m_InnerError;
 	FString m_Message;
 	SourceLocationType m_Location;
 };
@@ -158,6 +225,16 @@ struct TFormatter<TError<SourceLocationType>>
 
 		builder.Append(" "_sv);
 		builder.Append(value.GetMessage());
+
+		for (const ErrorType* innerError = value.GetInnerError(); innerError != nullptr; innerError = innerError->GetInnerError())
+		{
+			builder.Append("\n\t> "_sv);
+
+			sourceLocationFormatter.BuildString(innerError->GetSourceLocation(), builder);
+
+			builder.Append(" "_sv);
+			builder.Append(innerError->GetMessage());
+		}
 	}
 
 	/**
