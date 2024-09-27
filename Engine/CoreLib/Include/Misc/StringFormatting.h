@@ -8,6 +8,7 @@
 #include "Templates/IsPointer.h"
 #include "Templates/IsReference.h"
 #include "Templates/IsZeroConstructible.h"
+#include "Templates/ReferenceWrapper.h"
 #include "Templates/VariadicTraits.h"
 
 class FString;
@@ -23,7 +24,14 @@ class FStringBuilder;
 template<typename T>
 struct TFormatter
 {
-	void BuildString(const T& value, FStringBuilder& builder);
+	//void BuildString(const T& value, FStringBuilder& builder) const;
+	//bool Parse(FStringView formatString);
+};
+
+template<>
+struct TFormatter<FString>
+{
+	void BuildString(const FString& value, FStringBuilder& builder) const;
 	bool Parse(FStringView formatString);
 };
 
@@ -37,7 +45,7 @@ namespace Private
 	public:
 
 		virtual ~ITypeFormatter() = default;
-		virtual void BuildString(FStringBuilder& builder) = 0;
+		virtual void BuildString(FStringBuilder& builder) const = 0;
 		virtual bool Parse(FStringView formatString) = 0;
 	};
 
@@ -51,7 +59,7 @@ namespace Private
 	{
 	public:
 
-		using ElementType = T;
+		using ElementType = RemoveReference<T>;
 		using FormatterType = TFormatter<ElementType>;
 
 		/**
@@ -65,23 +73,13 @@ namespace Private
 		}
 
 		/**
-		 * @brief Creates a new type formatter instance.
-		 *
-		 * @param value The value to format.
-		 */
-		explicit TTypeFormatter(ElementType&& value)
-			: m_Value { MoveTemp(value) }
-		{
-		}
-
-		/**
 		 * @brief Appends the characters to the given array necessary to represent the underlying value.
 		 *
 		 * @param chars The character array to append to.
 		 */
-		virtual void BuildString(FStringBuilder& builder) override
+		virtual void BuildString(FStringBuilder& builder) const override
 		{
-			m_Formatter.BuildString(m_Value, builder);
+			m_Formatter.BuildString(m_Value.Get(), builder);
 		}
 
 		/**
@@ -97,7 +95,7 @@ namespace Private
 
 	private:
 
-		ElementType m_Value;
+		TReferenceWrapper<const ElementType> m_Value;
 		FormatterType m_Formatter;
 	};
 
@@ -110,16 +108,14 @@ namespace Private
 
 	public:
 
-		using ValueType = TVariant<FEmptyType, char, int64, uint64, float, double, FStringView, void*, bool, TUniquePtr<ITypeFormatter>>;
+		UM_DEFAULT_MOVE(FStringFormatArgument);
+
+		using ValueType = TVariant<FEmptyType, bool, char, int64, uint64, float, double, FStringView, const void*, TUniquePtr<ITypeFormatter>>;
 
 		/**
 		 * @brief Sets default values for this string format argument.
 		 */
 		FStringFormatArgument();
-
-		// Formatting arguments are move-able
-		FStringFormatArgument(FStringFormatArgument&&) = default;
-		FStringFormatArgument& operator=(FStringFormatArgument&&) = default;
 
 		/**
 		 * @brief Destroys this string format argument.
@@ -260,20 +256,6 @@ namespace Private
 		 *
 		 * @param value The value.
 		 */
-		explicit FStringFormatArgument(const FString& value);
-
-		/**
-		 * @brief Creates a new string formatting argument wrapping the given value.
-		 *
-		 * @param value The value.
-		 */
-		explicit FStringFormatArgument(FString&& value);
-
-		/**
-		 * @brief Creates a new string formatting argument wrapping the given value.
-		 *
-		 * @param value The value.
-		 */
 		explicit FStringFormatArgument(FStringView value);
 
 		/**
@@ -283,6 +265,16 @@ namespace Private
 		 */
 		explicit FStringFormatArgument(const char* value)
 			: FStringFormatArgument(FStringView { value })
+		{
+		}
+
+		/**
+		 * @brief Creates a new string formatting argument wrapping the given value.
+		 *
+		 * @param value The value.
+		 */
+		explicit FStringFormatArgument(char* value)
+			: FStringFormatArgument(FStringView { const_cast<const char*>(value) })
 		{
 		}
 
@@ -302,9 +294,20 @@ namespace Private
 		 * @tparam T The type of the value.
 		 * @param value The value.
 		 */
-		explicit FStringFormatArgument(void* value)
+		explicit FStringFormatArgument(const void* value)
 		{
-			m_Value.ResetToType<void*>(value);
+			m_Value.ResetToType<const void*>(value);
+		}
+
+		/**
+		 * @brief Creates a new string formatting argument wrapping the given value.
+		 *
+		 * @tparam T The type of the value.
+		 * @param value The value.
+		 */
+		explicit FStringFormatArgument(void* value)
+			: FStringFormatArgument { const_cast<const void*>(value) }
+		{
 		}
 
 		/**
@@ -341,19 +344,7 @@ namespace Private
 		 */
 		template<typename T>
 		explicit FStringFormatArgument(const T* value)
-			: FStringFormatArgument(const_cast<void*>(static_cast<const void*>(value)))
-		{
-		}
-
-		/**
-		 * @brief Creates a new string formatting argument wrapping the given value.
-		 *
-		 * @tparam T The type of the value.
-		 * @param value The value.
-		 */
-		template<typename T>
-		explicit FStringFormatArgument(T* value)
-			: FStringFormatArgument(static_cast<void*>(value))
+			: FStringFormatArgument(static_cast<const void*>(value))
 		{
 		}
 

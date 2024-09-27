@@ -218,7 +218,7 @@ struct TFormatter<TError<SourceLocationType>>
 	 * @param value The error.
 	 * @param builder The string builder.
 	 */
-	void BuildString(const ErrorType& value, FStringBuilder& builder)
+	void BuildString(const ErrorType& value, FStringBuilder& builder) const
 	{
 		TFormatter<SourceLocationType> sourceLocationFormatter;
 		sourceLocationFormatter.BuildString(value.GetSourceLocation(), builder);

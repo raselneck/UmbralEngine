@@ -3,20 +3,16 @@
 #include "Containers/String.h"
 #include "Misc/StringBuilder.h"
 
-template<>
-struct TFormatter<FString>
+void TFormatter<FString>::BuildString(const FString& value, FStringBuilder& builder) const
 {
-	void BuildString(const FString& value, FStringBuilder& builder)
-	{
-		builder.Append(value);
-	}
+	builder.Append(value.AsStringView());
+}
 
-	bool Parse(const FStringView /*formatString*/)
-	{
-		// TODO Parse default formatting arguments
-		return true;
-	}
-};
+bool TFormatter<FString>::Parse(const FStringView /*formatString*/)
+{
+	// TODO Parse default formatting arguments
+	return true;
+}
 
 namespace Private
 {
@@ -56,17 +52,6 @@ namespace Private
 			}
 			break;
 		}
-	}
-
-	FStringFormatArgument::FStringFormatArgument(const FString& value)
-	{
-		m_Value.ResetToType<FStringView>(value.AsStringView());
-	}
-
-	// For r-value string references, we need to have a "custom formatter" to hold the temporary value
-	FStringFormatArgument::FStringFormatArgument(FString&& value)
-	{
-		m_Value.ResetToType<TUniquePtr<ITypeFormatter>>(MakeUnique<TTypeFormatter<FString>>(value));
 	}
 
 	FStringFormatArgument::FStringFormatArgument(const FStringView value)

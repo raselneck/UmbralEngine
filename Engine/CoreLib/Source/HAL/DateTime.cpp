@@ -351,7 +351,7 @@ FDateTime FDateTime::UtcNow()
 	return FPlatformTime::GetUtcTime();
 }
 
-void TFormatter<FDateTime>::BuildString(const FDateTime& value, FStringBuilder& builder)
+void TFormatter<FDateTime>::BuildString(const FDateTime& value, FStringBuilder& builder) const
 {
 	BuildDateTimeString(value, m_FormatString, builder);
 }

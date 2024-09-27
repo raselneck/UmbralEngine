@@ -44,3 +44,11 @@ template<typename T> struct TRemoveReference<T&>  { using Type = T; };
 template<typename T> struct TRemoveReference<T&&> { using Type = T; };
 
 template<typename T> using RemoveReference = typename TRemoveReference<T>::Type;
+
+template<typename T> struct TRemoveConstReference            { using Type = T; };
+template<typename T> struct TRemoveConstReference<T&>        { using Type = T; };
+template<typename T> struct TRemoveConstReference<T&&>       { using Type = T; };
+template<typename T> struct TRemoveConstReference<const T&>  { using Type = T; };
+template<typename T> struct TRemoveConstReference<const T&&> { using Type = T; };
+
+template<typename T> using RemoveConstReference = typename TRemoveConstReference<T>::Type;

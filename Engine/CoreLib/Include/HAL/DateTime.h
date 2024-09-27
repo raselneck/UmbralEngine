@@ -458,7 +458,7 @@ class TFormatter<FDateTime>
 {
 public:
 
-	void BuildString(const FDateTime& value, FStringBuilder& builder);
+	void BuildString(const FDateTime& value, FStringBuilder& builder) const;
 	bool Parse(FStringView formatString);
 
 private:

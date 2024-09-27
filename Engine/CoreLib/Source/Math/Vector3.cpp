@@ -125,16 +125,13 @@ FVector3 FVector3::TransformNormal(const FVector3& normal, const FMatrix4& trans
 
 void TFormatter<FVector3>::BuildString(const FVector3& value, FStringBuilder& builder)
 {
-	FToCharsArgs args;
-	args.NumDecimals = 3;
-
-	builder.Append("("_sv);
-	Private::AppendCharsForFloat(builder, value.X, args);
-	builder.Append(", "_sv);
-	Private::AppendCharsForFloat(builder, value.Y, args);
-	builder.Append(", "_sv);
-	Private::AppendCharsForFloat(builder, value.Z, args);
-	builder.Append(")"_sv);
+	builder.Append("("_sv)
+	       .Append(value.X, MakeOptional<int32>(3))
+	       .Append(", "_sv)
+	       .Append(value.Y, MakeOptional<int32>(3))
+	       .Append(", "_sv)
+	       .Append(value.Z, MakeOptional<int32>(3))
+	       .Append(")"_sv);
 }
 
 bool TFormatter<FVector3>::Parse(const FStringView formatString)
