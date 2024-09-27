@@ -383,11 +383,10 @@ namespace Private
 		TArray<FStringFormatArgument> result;
 		result.Reserve(static_cast<int32>(sizeof...(args)));
 
-		TVariadicForEach<ArgTypes...>::Visit([&](auto&& arg)
+		([&]()
 		{
-			(void)result.Emplace(MoveTemp(arg));
-			return EIterationDecision::Continue;
-		}, Forward<ArgTypes>(args)...);
+			(void)result.Emplace(Forward<ArgTypes>(args));
+		}(), ...);
 
 		return result;
 	}

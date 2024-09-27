@@ -114,38 +114,3 @@ struct TVariadicContainsDuplicate<FirstType, SecondType, OtherTypes...>
 		TVariadicContainsDuplicate<SecondType, OtherTypes...>
 	>::Value;
 };
-
-///////////////////////////////////////////////////////////////////////////////
-// Visiting each type in a variadic pack
-
-template<typename... Types>
-struct TVariadicForEach;
-
-template<>
-struct TVariadicForEach<>
-{
-	template<typename CallbackType>
-	static void Visit(CallbackType callback)
-	{
-		(void)callback;
-	}
-};
-
-template<typename FirstType, typename... OtherTypes>
-struct TVariadicForEach<FirstType, OtherTypes...>
-{
-	template<typename CallbackType>
-	static void Visit(CallbackType callback, FirstType&& firstValue, OtherTypes&&... otherValues)
-	{
-		using CallbackReturnType = decltype(callback(MoveTempIfPossible(firstValue)));
-		static_assert(IsSame<CallbackReturnType, EIterationDecision>, "Callback must return EIteractionDecision");
-
-		const EIterationDecision decision = callback(MoveTempIfPossible(firstValue));
-		if (decision == EIterationDecision::Break)
-		{
-			return;
-		}
-
-		TVariadicForEach<OtherTypes...>::Visit(MoveTemp(callback), Forward<OtherTypes>(otherValues)...);
-	}
-};

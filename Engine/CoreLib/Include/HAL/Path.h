@@ -256,11 +256,10 @@ public:
 
 		(void)pathParts.Emplace(firstPath);
 
-		TVariadicForEach<ArgTypes...>::Visit([&](auto value)
+		([&]()
 		{
-			(void)pathParts.Emplace(value);
-			return EIterationDecision::Continue;
-		}, Forward<ArgTypes>(otherParts)...);
+			(void)pathParts.Emplace(Forward<ArgTypes>(otherParts));
+		}(), ...);
 
 		return Join(pathParts.AsSpan());
 	}

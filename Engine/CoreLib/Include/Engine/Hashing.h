@@ -338,12 +338,9 @@ template<typename FirstType, typename... OtherTypes>
 inline uint64 HashItems(const FirstType& firstValue, OtherTypes&&... otherValues)
 {
 	uint64 hash = GetHashCode(firstValue);
-
-	TVariadicForEach<OtherTypes...>::Visit([&](const auto& value)
+	([&]()
 	{
-		hash = Private::HashCombine(hash, GetHashCode(value));
-		return EIterationDecision::Continue;
-	}, Forward<OtherTypes>(otherValues)...);
-
+		hash = Private::HashCombine(hash, GetHashCode(otherValues));
+	}, ...);
 	return hash;
 }
