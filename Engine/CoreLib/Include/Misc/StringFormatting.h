@@ -349,6 +349,18 @@ namespace Private
 		}
 
 		/**
+		 * @brief Creates a new string formatting argument wrapping the given value.
+		 *
+		 * @tparam T The type of the value.
+		 * @param value The value.
+		 */
+		template<typename T>
+		explicit FStringFormatArgument(T* value)
+			: FStringFormatArgument(static_cast<const void*>(const_cast<const T*>(value)))
+		{
+		}
+
+		/**
 		 * @brief Builds the string for the underlying value.
 		 *
 		 * @param formatString The format string to parse.

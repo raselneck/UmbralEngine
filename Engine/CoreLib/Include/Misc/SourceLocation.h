@@ -57,7 +57,7 @@ private:
 template<>
 struct TFormatter<FSourceLocation>
 {
-	void BuildString(const FSourceLocation& value, FStringBuilder& builder);
+	void BuildString(const FSourceLocation& value, FStringBuilder& builder) const;
 	bool Parse(FStringView formatString);
 };
 

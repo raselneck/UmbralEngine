@@ -79,7 +79,7 @@ namespace Private
  */
 inline uint64 GetHashCode(const int8 value)
 {
-	return static_cast<uint64>(value);
+	return Private::HashBytes(Private::CastToBytes(value));
 }
 
 /**
@@ -123,7 +123,7 @@ inline uint64 GetHashCode(const int64 value)
  */
 inline uint64 GetHashCode(const uint8 value)
 {
-	return static_cast<uint64>(value);
+	return Private::HashBytes(Private::CastToBytes(value));
 }
 
 /**
@@ -335,12 +335,12 @@ inline uint64 HashItems(const ElementType (&items)[N])
  * @return The hash code.
  */
 template<typename FirstType, typename... OtherTypes>
-inline uint64 HashItems(const FirstType& firstValue, OtherTypes&&... otherValues)
+inline uint64 HashItems(FirstType&& firstValue, OtherTypes&&... otherValues)
 {
-	uint64 hash = GetHashCode(firstValue);
+	uint64 hash = GetHashCode(Forward<FirstType>(firstValue));
 	([&]()
 	{
-		hash = Private::HashCombine(hash, GetHashCode(otherValues));
-	}, ...);
+		hash = Private::HashCombine(hash, GetHashCode(Forward<OtherTypes>(otherValues)));
+	}(), ...);
 	return hash;
 }
