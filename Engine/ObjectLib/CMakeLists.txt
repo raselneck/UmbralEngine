@@ -8,7 +8,6 @@ set(UMBRAL_OBJECT_LIB_HEADERS
 	"Include/Object/ObjectPtr.h"
 	"Include/Object/WeakObjectPtr.h"
 	"Include/Templates/CanVisitReferencedObjects.h"
-	"Include/Templates/IsObject.h"
 )
 
 set(UMBRAL_OBJECT_LIB_SOURCES
