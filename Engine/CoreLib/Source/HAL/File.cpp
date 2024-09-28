@@ -69,8 +69,6 @@ public:
 	/** Handle to a buffer suitable for use by libuv */
 	using FRequestBufferHandle = TUniquePtr<FRequestBuffer>;
 
-	using Super::GetEventLoop;
-
 	/**
 	 * @brief Sets default values for this task's properties.
 	 *
