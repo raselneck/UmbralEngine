@@ -23,9 +23,12 @@ protected:
 void FUmbralTestModule::StartupModule()
 {
 	// TODO Move this into the Google Test engine. Right now, the engine is created AFTER all of the tests
-	int32 argc = FCommandLine::GetArgc();
-	char** argv = const_cast<char**>(FCommandLine::GetArgv());
+	FCommandLineArguments arguments = FCommandLine::GetMutableArguments();
+	int32 argc = arguments.GetArgc();
+	char** argv = arguments.GetArgv();
+
 	::testing::InitGoogleTest(&argc, argv);
+
 	(void)RUN_ALL_TESTS();
 }
 
