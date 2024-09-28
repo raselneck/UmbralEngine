@@ -14,24 +14,20 @@ bool FParsedStructInfo::HasObjectProperties() const
 		return false;
 	}
 
-	for (const FParsedPropertyInfo& property : this->Properties)
+	return Properties.ContainsByPredicate([](const FParsedPropertyInfo& property)
 	{
-		if (IsObjectBasedName(property.PropertyType))
-		{
-			return true;
-		}
-	}
-	return false;
+		return IsObjectBasedName(property.PropertyType);
+	});
 }
 
-bool FParsedStructInfo::IsObjectBasedName(const FStringView typeName)
+static bool IsObjectBasedTypeName(const FStringView typeName)
 {
 	if (typeName.IsEmpty())
 	{
 		return false;
 	}
 
-	if (typeName.StartsWith("U"_sv))
+	if (typeName.StartsWith("U"_sv) || typeName.StartsWith("A"_sv))
 	{
 		return true;
 	}
@@ -42,6 +38,33 @@ bool FParsedStructInfo::IsObjectBasedName(const FStringView typeName)
 	}
 
 	return typeName == "FObjectPtr"_sv || typeName == "FWeakObjectPtr"_sv;
+}
+
+static bool FindArrayElementTypeName(const FStringView typeName, FStringView& outElementTypeName)
+{
+	constexpr FStringView arrayMarker = "TArray<"_sv;
+	if (typeName.StartsWith(arrayMarker) && typeName.EndsWith(">"_sv))
+	{
+		outElementTypeName = typeName.Substring(arrayMarker.Length(), typeName.Length() - arrayMarker.Length() - 1);
+		return true;
+	}
+	return false;
+}
+
+bool FParsedStructInfo::IsObjectBasedName(const FStringView typeName)
+{
+	if (IsObjectBasedTypeName(typeName))
+	{
+		return true;
+	}
+
+	FStringView arrayElementTypeName;
+	if (FindArrayElementTypeName(typeName, arrayElementTypeName))
+	{
+		return IsObjectBasedTypeName(arrayElementTypeName);
+	}
+
+	return false;
 }
 
 bool FParsedStructInfo::IsObjectClass() const
