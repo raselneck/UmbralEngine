@@ -31,5 +31,5 @@ namespace VK
 	 * @param call The Vulkan API call.
 	 * @param sourceLocation The source location of the call.
 	 */
-	void ReportError(VkResult error, FStringView call, FSourceLocation sourceLocation);
+	void ReportError(VkResult error, FStringView call, FCppSourceLocation sourceLocation);
 }

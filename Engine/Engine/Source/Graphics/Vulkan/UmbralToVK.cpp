@@ -60,7 +60,7 @@ namespace VK
 #undef HANDLE_CASE
 	}
 
-	void ReportError(const VkResult error, const FStringView call, const FSourceLocation sourceLocation)
+	void ReportError(const VkResult error, const FStringView call, const FCppSourceLocation sourceLocation)
 	{
 		const FStringView errorName = GetVulkanResultName(error);
 		UM_LOG(Error, "Vulkan: {} error calling \"{}\"\n\tAt: {}", errorName, call, sourceLocation);

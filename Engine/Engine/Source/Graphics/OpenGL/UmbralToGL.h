@@ -69,7 +69,7 @@ namespace GL
 	 * @param sourceLocation The location in source the call was executed from.
 	 * @return True if an error was reported, otherwise false.
 	 */
-	[[nodiscard]] bool CheckForError(FStringView call, FSourceLocation sourceLocation);
+	[[nodiscard]] bool CheckForError(FStringView call, FCppSourceLocation sourceLocation);
 
 	/**
 	 * @brief Gets the OpenGL blend mode from the given Umbral blend mode.

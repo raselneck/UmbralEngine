@@ -66,7 +66,7 @@ namespace GL
 		return CheckForActiveContext(resource->GetGraphicsDevice().GetObject());
 	}
 
-	bool CheckForError(const FStringView call, const FSourceLocation sourceLocation)
+	bool CheckForError(const FStringView call, const FCppSourceLocation sourceLocation)
 	{
 		const GLenum error = glGetError();
 		if (error == GL_NO_ERROR)

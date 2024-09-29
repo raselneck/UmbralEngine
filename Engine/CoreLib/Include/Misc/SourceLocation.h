@@ -5,16 +5,16 @@
 #include "Misc/StringFormatting.h"
 
 /**
- * @brief Defines a source location.
+ * @brief Defines a C++ source location.
  */
-class FSourceLocation
+class FCppSourceLocation
 {
 public:
 
 	/**
 	 * @brief Sets default values for this source location's properties.
 	 */
-	constexpr FSourceLocation() = default;
+	constexpr FCppSourceLocation() = default;
 
 	/**
 	 * @brief Sets default values for this source location's properties.
@@ -22,7 +22,7 @@ public:
 	 * @param sourceName The source name.
 	 * @param sourceLine The source line.
 	 */
-	constexpr FSourceLocation(FStringView sourceName, int64 sourceLine)
+	constexpr FCppSourceLocation(FStringView sourceName, int64 sourceLine)
 		: m_SourceName { MoveTemp(sourceName) }
 		, m_SourceLine { sourceLine }
 	{
@@ -55,13 +55,13 @@ private:
 };
 
 template<>
-struct TFormatter<FSourceLocation>
+struct TFormatter<FCppSourceLocation>
 {
-	void BuildString(const FSourceLocation& value, FStringBuilder& builder) const;
+	void BuildString(const FCppSourceLocation& value, FStringBuilder& builder) const;
 	bool Parse(FStringView formatString);
 };
 
 /**
  * @brief Creates a FSourceLocation for the current line.
  */
-#define UMBRAL_SOURCE_LOCATION FSourceLocation(UMBRAL_FILE_AS_VIEW, UMBRAL_LINE)
+#define UMBRAL_SOURCE_LOCATION FCppSourceLocation(UMBRAL_FILE_AS_VIEW, UMBRAL_LINE)

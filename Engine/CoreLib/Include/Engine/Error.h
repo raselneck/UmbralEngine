@@ -200,7 +200,7 @@ private:
 /**
  * @brief Defines an error.
  */
-using FError = TError<FSourceLocation>;
+using FError = TError<FCppSourceLocation>;
 
 /**
  * @brief Defines a string formatter for errors.
@@ -259,7 +259,7 @@ struct TFormatter<TError<SourceLocationType>>
  *
  * @tparam T The result type.
  */
-template<typename T, typename SourceLocationType = FSourceLocation>
+template<typename T, typename SourceLocationType = FCppSourceLocation>
 class TErrorOr final
 {
 public:
