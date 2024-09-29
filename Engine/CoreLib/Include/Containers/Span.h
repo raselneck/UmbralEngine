@@ -29,6 +29,7 @@ public:
 	using ConstIteratorType = const T*;
 	using SizeType = int32;
 	using ComparisonTraits = TComparisonTraits<ElementType>;
+	using ThisType = TSpan;
 
 	/**
 	 * @brief Sets default values for this span's properties.
@@ -251,6 +252,21 @@ public:
 	[[nodiscard]] constexpr SizeType Num() const
 	{
 		return m_NumElements;
+	}
+
+	/**
+	 * @brief Returns a portion of this span.
+	 *
+	 * @param index The index to begin slicing at.
+	 * @param count The number of elements to return.
+	 * @return A portion of this span.
+	 */
+	[[nodiscard]] constexpr ThisType Slice(const SizeType index, const SizeType count) const
+	{
+		UM_CONSTEXPR_ASSERT(IsValidIndex(index), "Invalid span slice index");
+		UM_CONSTEXPR_ASSERT(IsValidIndex(index + count), "Invalid span slice count");
+
+		return ThisType { m_Data + index, count };
 	}
 
 	/**
