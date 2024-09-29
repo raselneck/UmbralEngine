@@ -11,6 +11,8 @@ class FToken
 {
 public:
 
+	static const FToken EndOfSource;
+
 	/** The token's text. This will only be valid as long as the source string is kept in memory. */
 	FStringView Text;
 
@@ -18,7 +20,7 @@ public:
 	FSourceLocation Location;
 
 	/** The token's type. */
-	ETokenType Type = ETokenType::Identifier;
+	ETokenType Type = ETokenType::EndOfSource;
 
 	/** The zero-based index of the token within the source. */
 	int32 SourceIndex = INDEX_NONE;

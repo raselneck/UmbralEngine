@@ -1,6 +1,8 @@
 find_package(GTest CONFIG REQUIRED)
 
 set(UMBRAL_PARSE_LIB_HEADERS
+	"Include/Parsing/Parser.h"
+	"Include/Parsing/ParseError.h"
 	"Include/Parsing/Scanner.h"
 	"Include/Parsing/SourceLocation.h"
 	"Include/Parsing/Token.h"
@@ -8,6 +10,7 @@ set(UMBRAL_PARSE_LIB_HEADERS
 )
 
 set(UMBRAL_PARSE_LIB_SOURCES
+	"Source/Parsing/Parser.cpp"
 	"Source/Parsing/Scanner.cpp"
 	"Source/Parsing/SourceLocation.cpp"
 )

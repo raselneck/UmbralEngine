@@ -268,7 +268,7 @@ void FScanner::ScanToken()
 		}
 		else
 		{
-			m_Errors.Add(FScannerError::Format(m_CurrentLocation, "Unexpected character \"{}\""_sv, ch));
+			m_Errors.Add(FParseError::Format(m_CurrentLocation, "Unexpected character \"{}\""_sv, ch));
 		}
 		break;
 	}

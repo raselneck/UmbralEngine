@@ -72,7 +72,7 @@ bool FParsedStructInfo::IsObjectBasedName(const FStringView typeName)
 	if (scanner.HasErrors())
 	{
 		UM_LOG(Error, "Failed to parse type name \"{}\". Reason(s):", typeName);
-		for (const FScannerError& error : scanner.GetErrors())
+		for (const FParseError& error : scanner.GetErrors())
 		{
 			UM_LOG(Error, "  {} {}", error.GetSourceLocation(), error.GetMessage());
 		}

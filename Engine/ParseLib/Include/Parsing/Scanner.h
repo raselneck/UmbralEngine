@@ -1,16 +1,11 @@
 #pragma once
 
 #include "Containers/Array.h"
-#include "Engine/Error.h"
+#include "Parsing/ParseError.h"
 #include "Parsing/SourceLocation.h"
 #include "Parsing/Token.h"
 
 // TODO Make this virtual OR provide a plethora of configuration options
-
-/**
- * @brief The error type used by the token scanner.
- */
-using FScannerError = TError<FSourceLocation>;
 
 /**
  * @brief Defines a scanner which can convert source text into a collection of tokens..
@@ -24,7 +19,7 @@ public:
 	 *
 	 * @return The tokens from the last scan.
 	 */
-	[[nodiscard]] TSpan<const FScannerError> GetErrors() const
+	[[nodiscard]] TSpan<const FParseError> GetErrors() const
 	{
 		return m_Errors.AsSpan();
 	}
@@ -142,7 +137,7 @@ protected:
 
 private:
 
-	TArray<FScannerError> m_Errors;
+	TArray<FParseError> m_Errors;
 	TArray<FToken> m_Tokens;
 	FStringView m_Text;
 	FStringView::SizeType m_CurrentIndex = 0; // Current index of the character cursor in m_Text

@@ -7,6 +7,7 @@
  */
 enum class ETokenType : int32
 {
+	EndOfSource,
 	Identifier,   // hello_world
 	String,       // "hello world"
 	Number,       // 12345
