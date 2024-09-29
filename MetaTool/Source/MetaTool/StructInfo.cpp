@@ -1,5 +1,7 @@
+#include "Engine/Logging.h"
 #include "MetaTool/ClassInfo.h"
 #include "MetaTool/StructInfo.h"
+#include "Parsing/Scanner.h"
 
 static bool IsObjectBasedType(const FParsedStructInfo& typeInfo)
 {
@@ -20,51 +22,64 @@ bool FParsedStructInfo::HasObjectProperties() const
 	});
 }
 
-static bool IsObjectBasedTypeName(const FStringView typeName)
+static bool IsObjectOrActorName(const FStringView typeName)
 {
-	if (typeName.IsEmpty())
-	{
-		return false;
-	}
-
-	if (typeName.StartsWith("U"_sv) || typeName.StartsWith("A"_sv))
-	{
-		return true;
-	}
-
-	if (typeName.StartsWith("TObjectPtr<"_sv) || typeName.StartsWith("TWeakObjectPtr<"_sv))
-	{
-		return typeName.EndsWith(">"_sv);
-	}
-
-	return typeName == "FObjectPtr"_sv || typeName == "FWeakObjectPtr"_sv;
+	return typeName.StartsWith('U') || // Not foolproof
+	       typeName.StartsWith('A') || // Not foolproof
+	       typeName == "TObjectPtr"_sv ||
+	       typeName == "TWeakObjectPtr"_sv ||
+	       typeName == "FObjectPtr"_sv ||
+	       typeName == "FWeakObjectPtr"_sv;
 }
 
-static bool FindArrayElementTypeName(const FStringView typeName, FStringView& outElementTypeName)
+static inline bool IsObjectOrActorName(const FToken& token)
 {
-	constexpr FStringView arrayMarker = "TArray<"_sv;
-	if (typeName.StartsWith(arrayMarker) && typeName.EndsWith(">"_sv))
+	return IsObjectOrActorName(token.Text);
+}
+
+static bool IsObjectBasedTypeName(const TSpan<const FToken> tokens)
+{
+	if (IsObjectOrActorName(tokens[0]))
 	{
-		outElementTypeName = typeName.Substring(arrayMarker.Length(), typeName.Length() - arrayMarker.Length() - 1);
 		return true;
 	}
+
+	if (tokens[0].Text == "TArray"_sv)
+	{
+		// Ill-formed TArray property
+		if (tokens[1].Text != "<"_sv || tokens[tokens.Num() - 1].Text != ">"_sv)
+		{
+			return false;
+		}
+
+		return IsObjectBasedTypeName(tokens.Slice(2, tokens.Num() - 3));
+	}
+
 	return false;
 }
 
 bool FParsedStructInfo::IsObjectBasedName(const FStringView typeName)
 {
-	if (IsObjectBasedTypeName(typeName))
+	FScanner scanner;
+	scanner.ScanTextForTokens(typeName);
+
+	const TSpan<const FToken> tokens = scanner.GetTokens();
+	if (tokens.IsEmpty())
 	{
-		return true;
+		return false;
 	}
 
-	FStringView arrayElementTypeName;
-	if (FindArrayElementTypeName(typeName, arrayElementTypeName))
+	if (scanner.HasErrors())
 	{
-		return IsObjectBasedTypeName(arrayElementTypeName);
+		UM_LOG(Error, "Failed to parse type name \"{}\". Reason(s):", typeName);
+		for (const FScannerError& error : scanner.GetErrors())
+		{
+			UM_LOG(Error, "  {} {}", error.GetSourceLocation(), error.GetMessage());
+		}
+		return false;
 	}
 
-	return false;
+	return IsObjectBasedTypeName(scanner.GetTokens());
 }
 
 bool FParsedStructInfo::IsObjectClass() const
