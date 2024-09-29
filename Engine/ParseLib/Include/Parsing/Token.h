@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Containers/String.h"
+#include "Containers/StringView.h"
+#include "Parsing/SourceLocation.h"
 #include "Parsing/TokenType.h"
 
 /**
@@ -10,15 +11,18 @@ class FToken
 {
 public:
 
-	/** The token's text. */
-	FString Text;
+	/** The token's text. This will only be valid as long as the source string is kept in memory. */
+	FStringView Text;
+
+	/** The source location of the token. */
+	FSourceLocation Location;
 
 	/** The token's type. */
 	ETokenType Type = ETokenType::Identifier;
 
-	/** The source line the token is located at. */
-	int32 Line = 0;
+	/** The zero-based index of the token within the source. */
+	int32 SourceIndex = INDEX_NONE;
 
-	/** The source column the token is located at. */
-	int32 Column = 0;
+	/** The length, or number of characters, of the token within the source. */
+	int32 SourceLength = 0;
 };

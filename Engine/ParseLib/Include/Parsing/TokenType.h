@@ -7,10 +7,12 @@
  */
 enum class ETokenType : int32
 {
-	Identifier,
-	String,
-	Integer,
-	Float,
+	EndOfSource,
+	Identifier,   // hello_world
+	String,       // "hello world"
+	Number,       // 12345
+	SingleQuote,  // '
+	DoubleQuote,  // "
 	LeftParen,    // (
 	RightParent,  // )
 	LeftBracket,  // [
@@ -19,6 +21,22 @@ enum class ETokenType : int32
 	RightBrace,   // }
 	LessThan,     // <
 	GreaterThan,  // >
+	Underscore,   // _
+	Period,       // .
 	Comma,        // ,
-	Period        // .
+	Colon,        // :
+	Semicolon,    // ;
+	Plus,         // +
+	Minus,        // -
+	Asterisk,     // *
+	Slash,        // /
+	Equal,        // =
+	Caret,        // ^
+	Exclamation,  // !
+	Question,     // ?
+	Ampersand,    // &
+	Percent,      // %
+	Octothorpe,   // # aka number sign aka pound sign aka hash mark
+	Tilde,        // ~
+	Backtick,     // `
 };

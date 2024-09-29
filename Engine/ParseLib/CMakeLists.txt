@@ -1,13 +1,15 @@
 find_package(GTest CONFIG REQUIRED)
 
 set(UMBRAL_PARSE_LIB_HEADERS
+	"Include/Parsing/Scanner.h"
+	"Include/Parsing/SourceLocation.h"
 	"Include/Parsing/Token.h"
-	"Include/Parsing/TokenScanner.h"
 	"Include/Parsing/TokenType.h"
 )
 
 set(UMBRAL_PARSE_LIB_SOURCES
-	"Source/Parsing/TokenScanner.cpp"
+	"Source/Parsing/Scanner.cpp"
+	"Source/Parsing/SourceLocation.cpp"
 )
 
 add_library(UmbralParseLib STATIC
