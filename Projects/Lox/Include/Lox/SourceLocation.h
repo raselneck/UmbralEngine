@@ -20,6 +20,6 @@ public:
 template<>
 struct TFormatter<FLoxSourceLocation>
 {
-	void BuildString(const FLoxSourceLocation& value, FStringBuilder& builder);
+	void BuildString(const FLoxSourceLocation& value, FStringBuilder& builder) const;
 	bool Parse(FStringView formatString);
 };
