@@ -60,10 +60,10 @@ public:
 	 * @param otherArgs The other arguments to use when formatting.
 	 * @return This string builder.
 	 */
-	template<typename FirstArgType, typename... ArgTypes>
-	FStringBuilder& Append(const FStringView formatString, const FirstArgType& firstArg, const ArgTypes&... otherArgs)
+	template<typename... ArgTypes>
+	FStringBuilder& Append(const FStringView formatString, ArgTypes&&... args)
 	{
-		TArray<Private::FStringFormatArgument> formatArgs = Private::MakeFormatArgumentArray(firstArg, Forward<ArgTypes>(otherArgs)...);
+		TArray<Private::FStringFormatArgument> formatArgs = Private::MakeFormatArgumentArray(Forward<ArgTypes>(args)...);
 		return AppendFormattedString(formatString, formatArgs.AsSpan());
 	}
 
