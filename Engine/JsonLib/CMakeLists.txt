@@ -32,6 +32,7 @@ target_link_libraries(UmbralJsonLib
 		ts::ts
 		ts::json
 		umbral::core_lib
+		umbral::parse_lib
 )
 
 umbral_set_target_properties(UmbralJsonLib)

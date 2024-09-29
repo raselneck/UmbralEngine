@@ -41,6 +41,7 @@ target_link_libraries(UmbralMetaTool
 		ts::ts
 		ts::cpp
 		umbral::core_lib
+		umbral::parse_lib
 )
 
 target_compile_definitions(UmbralMetaTool
