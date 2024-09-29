@@ -58,8 +58,6 @@ void FScanner::ScanTextForTokens(const FStringView text)
 		m_StartLocation = m_CurrentLocation;
 		ScanToken();
 	}
-
-	AddToken(ETokenType::EndOfSource);
 }
 
 FToken& FScanner::AddToken(const ETokenType tokenType)
@@ -76,6 +74,11 @@ FToken& FScanner::AddToken(const ETokenType tokenType)
 
 FStringView::CharType FScanner::AdvanceChar()
 {
+	if (m_Text.IsValidIndex(m_CurrentIndex) == false)
+	{
+		return '\0';
+	}
+
 	const FStringView::CharType result = m_Text[m_CurrentIndex];
 	++m_CurrentIndex;
 	++m_CurrentLocation.Column;
