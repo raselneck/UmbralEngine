@@ -265,6 +265,7 @@ public:
 	{
 		UM_CONSTEXPR_ASSERT(IsValidIndex(index), "Invalid span slice index");
 		UM_CONSTEXPR_ASSERT(IsValidIndex(index + count), "Invalid span slice count");
+		UM_CONSTEXPR_ASSERT(count >= 0, "Invalid span slice count");
 
 		return ThisType { m_Data + index, count };
 	}
