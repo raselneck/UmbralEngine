@@ -1,6 +1,10 @@
 #include "Engine/Assert.h"
 #include "JSON/JsonValue.h"
 
+const FJsonValue FJsonValue::False = FJsonValue::FromBool(false);
+const FJsonValue FJsonValue::Null { EJsonValueType::Null };
+const FJsonValue FJsonValue::True = FJsonValue::FromBool(true);
+
 FJsonValue::FJsonValue(const EJsonValueType type)
 {
 	SetValueByType(type);
@@ -14,6 +18,15 @@ const FJsonArray* FJsonValue::AsArray() const
 FJsonArray* FJsonValue::AsArray()
 {
 	return m_Value.GetValuePointer<FJsonArray>();
+}
+
+bool FJsonValue::AsBool() const
+{
+	if (const bool* value = m_Value.GetValuePointer<bool>())
+	{
+		return *value;
+	}
+	return false;
 }
 
 double FJsonValue::AsNumber() const
@@ -57,56 +70,63 @@ FStringView FJsonValue::AsStringView() const
 FJsonValue FJsonValue::CopyArray(const FJsonArray& value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<FJsonArray>(value);
+	result.SetArray(value);
 	return result;
 }
 
 FJsonValue FJsonValue::CopyObject(const FJsonObject& value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<FJsonObject>(value);
+	result.SetObject(value);
 	return result;
 }
 
 FJsonValue FJsonValue::CopyString(const FString& value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<FString>(value);
+	result.SetString(value);
 	return result;
 }
 
 FJsonValue FJsonValue::FromArray(FJsonArray value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<FJsonArray>(MoveTemp(value));
+	result.SetArray(MoveTemp(value));
+	return result;
+}
+
+FJsonValue FJsonValue::FromBool(const bool value)
+{
+	FJsonValue result;
+	result.SetBool(value);
 	return result;
 }
 
 FJsonValue FJsonValue::FromNumber(const double value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<double>(value);
+	result.SetNumber(value);
 	return result;
 }
 
 FJsonValue FJsonValue::FromObject(FJsonObject value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<FJsonObject>(MoveTemp(value));
+	result.SetObject(MoveTemp(value));
 	return result;
 }
 
 FJsonValue FJsonValue::FromString(FString value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<FString>(MoveTemp(value));
+	result.SetString(MoveTemp(value));
 	return result;
 }
 
 FJsonValue FJsonValue::FromString(const FStringView value)
 {
 	FJsonValue result;
-	result.m_Value.ResetToType<FString>(value);
+	result.SetString(value);
 	return result;
 }
 
@@ -114,8 +134,9 @@ EJsonValueType FJsonValue::GetType() const
 {
 	return m_Value.Visit<EJsonValueType>(FVariantVisitor
 	{
-		[](const FEmptyType&)  { return EJsonValueType::Null; },
-		[](const double&)      { return EJsonValueType::Number; },
+		[](const FEmptyType)   { return EJsonValueType::Null; },
+		[](const bool)         { return EJsonValueType::Boolean; },
+		[](const double)       { return EJsonValueType::Number; },
 		[](const FString&)     { return EJsonValueType::String; },
 		[](const FJsonArray&)  { return EJsonValueType::Array; },
 		[](const FJsonObject&) { return EJsonValueType::Object; }
@@ -125,6 +146,11 @@ EJsonValueType FJsonValue::GetType() const
 bool FJsonValue::IsArray() const
 {
 	return m_Value.Is<FJsonArray>();
+}
+
+bool FJsonValue::IsBool() const
+{
+	return m_Value.Is<bool>();
 }
 
 bool FJsonValue::IsNull() const
@@ -155,6 +181,11 @@ void FJsonValue::SetArray(const FJsonArray& array)
 void FJsonValue::SetArray(FJsonArray&& array)
 {
 	m_Value.ResetToType<FJsonArray>(MoveTemp(array));
+}
+
+void FJsonValue::SetBool(const bool value)
+{
+	m_Value.ResetToType<bool>(value);
 }
 
 void FJsonValue::SetNull()
@@ -198,6 +229,9 @@ void FJsonValue::SetValueByType(EJsonValueType type)
 	{
 	case EJsonValueType::Null:
 		SetNull();
+		break;
+	case EJsonValueType::Boolean:
+		SetBool(false);
 		break;
 	case EJsonValueType::Number:
 		SetNumber(0.0);

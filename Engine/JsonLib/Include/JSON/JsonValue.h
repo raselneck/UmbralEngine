@@ -5,12 +5,29 @@
 #include "JSON/JsonObject.h"
 #include "JSON/JsonValueType.h"
 
+// TODO Support a distinction between floating-point and integral numbers
+
 /**
  * @brief Defines the base for JSON values.
  */
 class FJsonValue final
 {
 public:
+
+	/**
+	 * @brief The false JSON value.
+	 */
+	static const FJsonValue False;
+
+	/**
+	 * @brief The null JSON value.
+	 */
+	static const FJsonValue Null;
+
+	/**
+	 * @brief The true JSON value.
+	 */
+	static const FJsonValue True;
 
 	/**
 	 * @brief Sets default values for this JSON value's properties.
@@ -42,6 +59,13 @@ public:
 	 * @return This JSON value's underlying array value.
 	 */
 	[[nodiscard]] FJsonArray* AsArray();
+
+	/**
+	 * @brief Gets this JSON value as a Boolean.
+	 *
+	 * @return This JSON value's underlying Boolean value.
+	 */
+	[[nodiscard]] bool AsBool() const;
 
 	/**
 	 * @brief Gets this JSON value as a number.
@@ -118,6 +142,14 @@ public:
 	[[nodiscard]] static FJsonValue FromArray(FJsonArray value);
 
 	/**
+	 * @brief Creates a JSON value from a Boolean.
+	 *
+	 * @param value The Boolean value.
+	 * @return The JSON value.
+	 */
+	[[nodiscard]] static FJsonValue FromBool(bool value);
+
+	/**
 	 * @brief Creates a JSON value from a number.
 	 *
 	 * @param value The number value.
@@ -164,6 +196,13 @@ public:
 	[[nodiscard]] bool IsArray() const;
 
 	/**
+	 * @brief Checks to see if this JSON value is a Boolean.
+	 *
+	 * @return True if this JSON value is a Boolean, otherwise false.
+	 */
+	[[nodiscard]] bool IsBool() const;
+
+	/**
 	 * @brief Checks to see if this JSON value is null.
 	 *
 	 * @return True if this JSON value is null, otherwise false.
@@ -204,6 +243,13 @@ public:
 	 * @param array The array value.
 	 */
 	void SetArray(FJsonArray&& array);
+
+	/**
+	 * @brief Sets this JSON value to be a Boolean.
+	 *
+	 * @param value The Boolean value.
+	 */
+	void SetBool(bool value);
 
 	/**
 	 * @brief Sets this JSON value to be null.
@@ -261,5 +307,5 @@ public:
 
 private:
 
-	TVariant<FEmptyType, double, FString, FJsonArray, FJsonObject> m_Value;
+	TVariant<FEmptyType, bool, double, FString, FJsonArray, FJsonObject> m_Value;
 };

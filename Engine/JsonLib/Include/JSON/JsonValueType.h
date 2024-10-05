@@ -6,6 +6,7 @@
 enum class EJsonValueType
 {
 	Null,
+	Boolean,
 	Number,
 	String,
 	Array,
