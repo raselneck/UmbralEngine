@@ -25,6 +25,216 @@ public:
 		return MoveTemp(m_ParsedValue);
 	}
 
+protected:
+
+	/** @inheritdoc FParser::OnParseBegin() */
+	virtual bool OnParseBegin() override
+	{
+		// JSON documents must either have an array or an object as the root value
+		if (Peek().Type != ETokenType::LeftBracket && Peek().Type != ETokenType::LeftBrace)
+		{
+			RecordError(Peek().Location, "Expected JSON array or object"_sv);
+			return false;
+		}
+
+		return true;
+	}
+
+	/** @inheritdoc FParser::ParseFromCurrentToken() */
+	virtual EIterationDecision ParseFromCurrentToken() override
+	{
+		TOptional<FJsonValue> rootValue = ParseJsonValue();
+		if (rootValue.HasValue())
+		{
+			m_ParsedValue = rootValue.ReleaseValue();
+		}
+
+		// We can safely ignore anything after the root value
+		// TODO Maybe record an error if we're not at the end after skipping some comments?
+		return EIterationDecision::Break;
+	}
+
+	/**
+	 * @brief Parses a JSON array.
+	 *
+	 * @return The parsed JSON array.
+	 */
+	[[nodiscard]] TOptional<FJsonArray> ParseJsonArray()
+	{
+		if (Consume(ETokenType::LeftBracket, "Expected '[' to start JSON array"_sv) == false)
+		{
+			return nullopt;
+		}
+
+		FJsonArray array;
+		bool first = true;
+		while (IsAtEnd() == false && Peek().Type != ETokenType::RightBracket)
+		{
+			if (first)
+			{
+				first = false;
+			}
+			else if (Consume(ETokenType::Comma, "Expected ',' between JSON array values"_sv) == false)
+			{
+				return nullopt;
+			}
+
+			TOptional<FJsonValue> value = ParseJsonValue();
+			if (value.IsEmpty())
+			{
+				return nullopt;
+			}
+
+			array.Add(value.ReleaseValue());
+		}
+
+		if (Consume(ETokenType::RightBracket, "Expected ']' to end JSON array"_sv))
+		{
+			return array;
+		}
+
+		return nullopt;
+	}
+
+	/**
+	 * @brief Parses a JSON number.
+	 *
+	 * @return The parsed number.
+	 */
+	[[nodiscard]] TOptional<FJsonValue> ParseJsonNumber()
+	{
+		const FSourceLocation numberLocation = Peek().Location;
+		FStringBuilder numberString;
+
+		// Ignore the plus
+		if (Peek().Type == ETokenType::Plus)
+		{
+			AdvanceToken();
+		}
+		// Keep the negative sign
+		if (Peek().Type == ETokenType::Minus)
+		{
+			numberString.Append(AdvanceToken().Text); // Negation
+		}
+
+		numberString.Append(AdvanceToken().Text); // Number
+
+		// Check for a decimal
+		bool decimal = false;
+		if (Peek().Type == ETokenType::Period && PeekNext().Type == ETokenType::Number)
+		{
+			numberString.Append(AdvanceToken().Text); // Period
+			numberString.Append(AdvanceToken().Text); // Number
+			decimal = true;
+		}
+
+		if (decimal)
+		{
+			const TOptional<double> number = FStringParser::TryParseDouble(numberString.AsStringView());
+			if (number.HasValue())
+			{
+				return FJsonValue::FromNumber(number.GetValue());
+			}
+			else
+			{
+				RecordError(numberLocation, "Failed to parse \"{}\" as a decimal"_sv, numberString.AsStringView());
+				return nullopt;
+			}
+		}
+
+		const TOptional<int64> number = FStringParser::TryParseInt64(numberString.AsStringView());
+		if (number.HasValue())
+		{
+			return FJsonValue::FromNumber(static_cast<double>(number.GetValue()));
+		}
+
+		RecordError(numberLocation, "Failed to parse \"{}\" as an integer"_sv, numberString.AsStringView());
+		return nullopt;
+	}
+
+	/**
+	 * @brief Parses a JSON object.
+	 *
+	 * @return The parsed JSON object.
+	 */
+	[[nodiscard]] TOptional<FJsonObject> ParseJsonObject()
+	{
+		if (Consume(ETokenType::LeftBrace, "Expected '{' to start JSON object"_sv) == false)
+		{
+			return nullopt;
+		}
+	}
+
+	/**
+	 * @brief Parses a JSON value.
+	 *
+	 * @return The parsed JSON value.
+	 */
+	[[nodiscard]] TOptional<FJsonValue> ParseJsonValue()
+	{
+		switch (Peek().Type)
+		{
+		case ETokenType::LeftBracket:
+		{
+			TOptional<FJsonArray> array = ParseJsonArray();
+			if (array.HasValue())
+			{
+				return FJsonValue::FromArray(array.ReleaseValue());
+			}
+			return nullopt;
+		}
+
+		case ETokenType::LeftBrace:
+		{
+			TOptional<FJsonObject> object = ParseJsonObject();
+			if (object.HasValue())
+			{
+				return FJsonValue::FromObject(object.ReleaseValue());
+			}
+			return nullopt;
+		}
+
+		case ETokenType::Minus:
+		case ETokenType::Plus: // Non-standard, but allow numbers like "+42.5"
+			if (PeekNext().Type == ETokenType::Number)
+			{
+				return ParseJsonNumber();
+			}
+			break;
+
+		case ETokenType::Number:
+			return ParseJsonNumber();
+
+		case ETokenType::String:
+			return FJsonValue::FromString(AdvanceToken().Text);
+
+		case ETokenType::Identifier:
+			if (Peek().Text == "null"_sv)
+			{
+				AdvanceToken();
+				return FJsonValue::Null;
+			}
+			if (Peek().Text == "true"_sv)
+			{
+				AdvanceToken();
+				return FJsonValue::True;
+			}
+			if (Peek().Text == "false"_sv)
+			{
+				AdvanceToken();
+				return FJsonValue::False;
+			}
+			break;
+
+		default:
+			break;
+		}
+
+		RecordError(Peek().Location, "Unexpected \"{}\""_sv, Peek().Text);
+
+		return nullopt;
+	}
+
 private:
 
 	FJsonValue m_ParsedValue;

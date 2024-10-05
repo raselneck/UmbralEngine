@@ -6,12 +6,10 @@ void FParser::ParseTokens(const TSpan<const FToken> tokens)
 	m_Tokens = tokens;
 	m_TokenIndex = 0;
 
-	if (m_Tokens.IsEmpty())
+	if (m_Tokens.IsEmpty() || OnParseBegin() == false)
 	{
 		return;
 	}
-
-	OnParseBegin();
 
 	while (IsAtEnd() == false && ParseFromCurrentToken() == EIterationDecision::Continue)
 	{

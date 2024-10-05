@@ -108,6 +108,26 @@ public:
 		m_MultiLineCommentEnd = multiLineEnd;
 	}
 
+	/**
+	 * @brief Sets whether or not this scanner should record comment tokens.
+	 *
+	 * @param shouldRecordComments True if this scanner should record comment tokens, false if not.
+	 */
+	void SetShouldRecordComments(bool shouldRecordComments)
+	{
+		m_ShouldRecordComments = shouldRecordComments;
+	}
+
+	/**
+	 * @brief Whether or not this scanner should record comment tokens. Comments will still be properly scanned and skipped if they are setup.
+	 *
+	 * @return True if this scanner should record comment tokens, false if not.
+	 */
+	[[nodiscard]] bool ShouldRecordComments() const
+	{
+		return m_ShouldRecordComments;
+	}
+
 protected:
 
 	/**
@@ -229,12 +249,13 @@ private:
 
 	TArray<FParseError> m_Errors;
 	TArray<FToken> m_Tokens;
-	FStringView m_LineCommentBegin = "//"_sv;
-	FStringView m_MultiLineCommentBegin = "/*"_sv;
-	FStringView m_MultiLineCommentEnd = "*/"_sv;
+	FStringView m_LineCommentBegin;
+	FStringView m_MultiLineCommentBegin;
+	FStringView m_MultiLineCommentEnd;
 	FStringView m_Text;
 	FStringView::SizeType m_CurrentIndex = 0; // Current index of the character cursor in m_Text
 	FStringView::SizeType m_StartIndex = 0;   // Starting index of the current token being parsed
 	FSourceLocation m_CurrentLocation;
 	FSourceLocation m_StartLocation;
+	bool m_ShouldRecordComments = false;
 };

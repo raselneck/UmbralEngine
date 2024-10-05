@@ -10,6 +10,11 @@ class FJsonScanner : public FScanner
 public:
 
 	/**
+	 * @brief Sets default values for this scanner's properties.
+	 */
+	FJsonScanner();
+
+	/**
 	 * @brief Destroys this JSON token scanner.
 	 */
 	virtual ~FJsonScanner() override = default;

@@ -49,6 +49,8 @@ protected:
 
 	/**
 	 * @brief Advances to the next token.
+	 *
+	 * @return The current (now previous due to advancing) token.
 	 */
 	[[maybe_unused]] const FToken& AdvanceToken();
 
@@ -106,8 +108,10 @@ protected:
 
 	/**
 	 * @brief Called when parsing is beginning.
+	 *
+	 * @return True to begin parsing, false to not even attempt to parse.
 	 */
-	virtual void OnParseBegin() { }
+	virtual bool OnParseBegin() { return true; }
 
 	/**
 	 * @brief Called when parsing has ended.

@@ -22,7 +22,7 @@ TEST(ParseTests, FromStringSimple)
 
 TEST(ParseTests, FromStringComplex)
 {
-	constexpr FStringView jsonString = "[\"string\", 42, 3.14, null, {\"key\": \"value\"}]"_sv;
+	constexpr FStringView jsonString = "[\"string\", +42, -3.14, null, {\"key\": \"value\"}]"_sv;
 
 	const TErrorOr<FJsonValue> parseResult = JSON::ParseString(jsonString);
 	ASSERT_FALSE(parseResult.IsError());
@@ -41,7 +41,7 @@ TEST(ParseTests, FromStringComplex)
 
 	const FJsonValue& thirdValue = array->At(2);
 	EXPECT_TRUE(secondValue.IsNumber());
-	EXPECT_DOUBLE_EQ(thirdValue.AsNumber(), 3.14);
+	EXPECT_DOUBLE_EQ(thirdValue.AsNumber(), -3.14);
 
 	const FJsonValue& fourthValue = array->At(3);
 	EXPECT_TRUE(fourthValue.IsNull());
