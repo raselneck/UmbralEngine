@@ -25,11 +25,11 @@ TEST(ParseTests, FromStringComplex)
 	constexpr FStringView jsonString = "[\"string\", 42, 3.14, null, {\"key\": \"value\"}]"_sv;
 
 	const TErrorOr<FJsonValue> parseResult = JSON::ParseString(jsonString);
-	EXPECT_FALSE(parseResult.IsError());
-	EXPECT_TRUE(parseResult.GetValue().IsArray());
+	ASSERT_FALSE(parseResult.IsError());
+	ASSERT_TRUE(parseResult.GetValue().IsArray());
 
 	const FJsonArray* array = parseResult.GetValue().AsArray();
-	EXPECT_EQ(array->Num(), 5);
+	ASSERT_EQ(array->Num(), 5);
 
 	const FJsonValue& firstValue = array->At(0);
 	EXPECT_TRUE(firstValue.IsString());

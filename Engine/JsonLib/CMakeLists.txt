@@ -12,6 +12,8 @@ set(UMBRAL_JSON_LIB_SOURCES
 	"Source/JSON/JsonArray.cpp"
 	"Source/JSON/JsonObject.cpp"
 	"Source/JSON/JsonParser.cpp"
+	"Source/JSON/JsonScanner.cpp"
+	"Source/JSON/JsonScanner.h"
 	"Source/JSON/JsonValue.cpp"
 )
 
