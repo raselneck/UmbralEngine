@@ -13,6 +13,7 @@ set(UMBRAL_PARSE_LIB_SOURCES
 	"Source/Parsing/Parser.cpp"
 	"Source/Parsing/Scanner.cpp"
 	"Source/Parsing/SourceLocation.cpp"
+	"Source/Parsing/Token.cpp"
 )
 
 add_library(UmbralParseLib STATIC
@@ -41,6 +42,7 @@ if(WITH_TESTING)
 	add_executable(UmbralParseLibTests
 		"Tests/Main.cpp"
 		"Tests/ParseTests.cpp"
+		"Tests/ScannerTests.cpp"
 	)
 
 	add_executable(umbral::parse_lib::tests ALIAS UmbralParseLibTests)

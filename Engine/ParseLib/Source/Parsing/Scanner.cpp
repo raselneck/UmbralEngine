@@ -119,6 +119,11 @@ FStringView FScanner::GetCurrentTokenText() const
 	return m_Text.Substring(m_StartIndex, tokenLength);
 }
 
+FStringView FScanner::GetTokenText(const FToken& token) const
+{
+	return m_Text.Substring(token.SourceIndex, token.SourceLength);
+}
+
 bool FScanner::IsAtEnd() const
 {
 	return m_CurrentIndex >= m_Text.Length();
@@ -137,6 +142,28 @@ bool FScanner::Match(const FStringView::CharType expected)
 	}
 
 	++m_CurrentIndex;
+
+	return true;
+}
+
+bool FScanner::Match(const FStringView expected)
+{
+	if (IsAtEnd() || expected.IsEmpty())
+	{
+		return false;
+	}
+
+	for (FStringView::SizeType idx = 0; idx < expected.Length(); ++idx)
+	{
+		if (m_Text.IsValidIndex(m_CurrentIndex + idx) && m_Text[m_CurrentIndex + idx] == expected[idx])
+		{
+			continue;
+		}
+
+		return false;
+	}
+
+	m_CurrentIndex += expected.Length();
 
 	return true;
 }
@@ -181,6 +208,32 @@ void FScanner::ScanIdentifier()
 	AddToken(ETokenType::Identifier);
 }
 
+void FScanner::ScanLineComment()
+{
+	while (IsAtEnd() == false && Peek() != '\n' && Peek() != '\r')
+	{
+		AdvanceChar();
+	}
+
+	FToken& token = AddToken(ETokenType::Comment);
+	token.SourceIndex += m_LineCommentBegin.Length();
+	token.SourceLength -= m_LineCommentBegin.Length();
+	token.Text = GetTokenText(token);
+}
+
+void FScanner::ScanMultiLineComment()
+{
+	while (IsAtEnd() == false && Match(m_MultiLineCommentEnd) == false)
+	{
+		AdvanceChar();
+	}
+
+	FToken& token = AddToken(ETokenType::Comment);
+	token.SourceIndex += m_MultiLineCommentBegin.Length();
+	token.SourceLength -= m_MultiLineCommentBegin.Length() + m_MultiLineCommentEnd.Length();
+	token.Text = GetTokenText(token);
+}
+
 void FScanner::ScanNumberLiteral()
 {
 	while (IsDigit(Peek()))
@@ -216,14 +269,33 @@ void FScanner::ScanStringLiteral()
 	FToken& token = AddToken(ETokenType::String);
 	token.SourceIndex = m_StartIndex + 1;
 	token.SourceLength = (m_CurrentIndex - 1) - (m_StartIndex + 1);
-	token.Text = m_Text.Substring(m_StartIndex + 1, token.SourceLength);
+	token.Text = GetTokenText(token);
 }
 
 void FScanner::ScanToken()
 {
+	if (TryScanTokenFromCurrentPosition())
+	{
+		return;
+	}
+
+	if (Match(m_LineCommentBegin))
+	{
+		return ScanLineComment();
+	}
+	if (Match(m_MultiLineCommentBegin))
+	{
+		return ScanMultiLineComment();
+	}
+
 	const char ch = AdvanceChar();
 	switch (ch)
 	{
+	// TODO Configurable :)
+	case '"':
+		ScanStringLiteral();
+		break;
+
 	case '\'': AddToken(ETokenType::SingleQuote);   break;
 	case '(':  AddToken(ETokenType::LeftParen);     break;
 	case ')':  AddToken(ETokenType::RightParent);   break;
@@ -251,11 +323,6 @@ void FScanner::ScanToken()
 	case '#':  AddToken(ETokenType::Octothorpe);    break;
 	case '~':  AddToken(ETokenType::Tilde);         break;
 	case '`':  AddToken(ETokenType::Backtick);      break;
-
-	// TODO Configurable :)
-	case '"':
-		ScanStringLiteral();
-		break;
 
 	default:
 		if (IsDigit(ch))

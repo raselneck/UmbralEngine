@@ -10,9 +10,14 @@
 /**
  * @brief Defines a scanner which can convert source text into a collection of tokens..
  */
-class FScanner final
+class FScanner
 {
 public:
+
+	/**
+	 * @brief Destroys this scanner.
+	 */
+	virtual ~FScanner() = default;
 
 	/**
 	 * @brief Gets the errors from the last scan.
@@ -22,6 +27,36 @@ public:
 	[[nodiscard]] TSpan<const FParseError> GetErrors() const
 	{
 		return m_Errors.AsSpan();
+	}
+
+	/**
+	 * @brief Gets the marker for the beginning of a line comment.
+	 *
+	 * @return The marker for the beginning of a line comment.
+	 */
+	[[nodiscard]] FStringView GetLineCommentBegin() const
+	{
+		return m_LineCommentBegin;
+	}
+
+	/**
+	 * @brief Gets the beginning of a multi-line comment.
+	 *
+	 * @return The beginning of a multi-line comment.
+	 */
+	[[nodiscard]] FStringView GetMultiLineCommentBegin() const
+	{
+		return m_MultiLineCommentBegin;
+	}
+
+	/**
+	 * @brief Gets the ending of a multi-line comment.
+	 *
+	 * @return The ending of a multi-line comment.
+	 */
+	[[nodiscard]] FStringView GetMultiLineCommentEnd() const
+	{
+		return m_MultiLineCommentEnd;
 	}
 
 	/**
@@ -51,6 +86,28 @@ public:
 	 */
 	void ScanTextForTokens(FStringView text);
 
+	/**
+	 * @brief Sets the line comment beginning marker.
+	 *
+	 * @param lineCommentBegin The new line comment beginning marker.
+	 */
+	void SetLineCommentBegin(const FStringView lineCommentBegin)
+	{
+		m_LineCommentBegin = lineCommentBegin;
+	}
+
+	/**
+	 * @brief Sets the markers for a multi-line comment.
+	 *
+	 * @param multiLineBegin The new beginning of a multi-line comment.
+	 * @param multiLineEnd The new ending of a multi-line comment.
+	 */
+	void SetMultiLineComment(const FStringView multiLineBegin, const FStringView multiLineEnd)
+	{
+		m_MultiLineCommentBegin = multiLineBegin;
+		m_MultiLineCommentEnd = multiLineEnd;
+	}
+
 protected:
 
 	/**
@@ -75,6 +132,14 @@ protected:
 	[[nodiscard]] FStringView GetCurrentTokenText() const;
 
 	/**
+	 * @brief Gets the source text for a token based off of its source index and length.
+	 *
+	 * @param token The token.
+	 * @return The token's source text.
+	 */
+	[[nodiscard]] FStringView GetTokenText(const FToken& token) const;
+
+	/**
 	 * @brief Checks to see if this scanner is at the end of the source text.
 	 *
 	 * @return True if this scanner is at the end of the source text, otherwise false.
@@ -85,9 +150,17 @@ protected:
 	 * @brief Attempts to match an expected character. If the next character is \p expected, then this scanner will advance.
 	 *
 	 * @param expected The character to match.
-	 * @return True if \p ch was matched, otherwise false.
+	 * @return True if \p expected was matched, otherwise false.
 	 */
 	[[nodiscard]] bool Match(FStringView::CharType expected);
+
+	/**
+	 * @brief Attempts to match an expected string. If the string \p expected is matched, then this scanner will advance.
+	 *
+	 * @param expected The string to match.
+	 * @return True if \p expected was matched, otherwise false.
+	 */
+	[[nodiscard]] bool Match(FStringView expected);
 
 	/**
 	 * @brief Peeks at the next character in the source text.
@@ -116,6 +189,16 @@ protected:
 	void ScanIdentifier();
 
 	/**
+	 * @brief Scans for a single line comment.
+	 */
+	void ScanLineComment();
+
+	/**
+	 * @brief Scans for a multi-line comment.
+	 */
+	void ScanMultiLineComment();
+
+	/**
 	 * @brief Attempts to scan a number literal.
 	 */
 	void ScanNumberLiteral();
@@ -135,10 +218,20 @@ protected:
 	 */
 	void SkipWhitespace();
 
+	/**
+	 * @brief Attempts to scan a token from the current source text position.
+	 *
+	 * @return True if a token was scanned, otherwise false.
+	 */
+	virtual bool TryScanTokenFromCurrentPosition() { return false; }
+
 private:
 
 	TArray<FParseError> m_Errors;
 	TArray<FToken> m_Tokens;
+	FStringView m_LineCommentBegin = "//"_sv;
+	FStringView m_MultiLineCommentBegin = "/*"_sv;
+	FStringView m_MultiLineCommentEnd = "*/"_sv;
 	FStringView m_Text;
 	FStringView::SizeType m_CurrentIndex = 0; // Current index of the character cursor in m_Text
 	FStringView::SizeType m_StartIndex = 0;   // Starting index of the current token being parsed
