@@ -27,26 +27,28 @@ public:
 
 protected:
 
-	/** @inheritdoc FParser::OnParseBegin() */
-	virtual bool OnParseBegin() override
-	{
-		// JSON documents must either have an array or an object as the root value
-		if (Peek().Type != ETokenType::LeftBracket && Peek().Type != ETokenType::LeftBrace)
-		{
-			RecordError(Peek().Location, "Expected JSON array or object"_sv);
-			return false;
-		}
-
-		return true;
-	}
-
 	/** @inheritdoc FParser::ParseFromCurrentToken() */
 	virtual EIterationDecision ParseFromCurrentToken() override
 	{
-		TOptional<FJsonValue> rootValue = ParseJsonValue();
-		if (rootValue.HasValue())
+		if (Peek().Type == ETokenType::LeftBrace)
 		{
-			m_ParsedValue = rootValue.ReleaseValue();
+			TOptional<FJsonObject> object = ParseJsonObject();
+			if (object.HasValue())
+			{
+				m_ParsedValue.SetObject(object.ReleaseValue());
+			}
+		}
+		else if (Peek().Type == ETokenType::LeftBracket)
+		{
+			TOptional<FJsonArray> array = ParseJsonArray();
+			if (array.HasValue())
+			{
+				m_ParsedValue.SetArray(array.ReleaseValue());
+			}
+		}
+		else
+		{
+			RecordError(Peek().Location, "Expected start of JSON array or object"_sv);
 		}
 
 		// We can safely ignore anything after the root value
@@ -163,6 +165,49 @@ protected:
 		{
 			return nullopt;
 		}
+
+		FJsonObject object;
+		bool first = true;
+		while (IsAtEnd() == false && Peek().Type != ETokenType::RightBrace)
+		{
+			if (first)
+			{
+				first = false;
+			}
+			else if (Consume(ETokenType::Comma, "Expected ',' between JSON object values"_sv) == false)
+			{
+				return nullopt;
+			}
+
+			if (Peek().Type != ETokenType::String)
+			{
+				RecordError(Peek().Location, "Expected string for object key"_sv);
+				return nullopt;
+			}
+
+			const FStringView key = Peek().Text;
+			AdvanceToken();
+
+			if (Consume(ETokenType::Colon, "Expected ':' after object key"_sv) == false)
+			{
+				return nullopt;
+			}
+
+			TOptional<FJsonValue> value = ParseJsonValue();
+			if (value.IsEmpty())
+			{
+				return nullopt;
+			}
+
+			object.Set(key, value.ReleaseValue());
+		}
+
+		if (Consume(ETokenType::RightBrace, "Expected '}' to end JSON object"_sv))
+		{
+			return object;
+		}
+
+		return nullopt;
 	}
 
 	/**

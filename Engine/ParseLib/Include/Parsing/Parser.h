@@ -108,10 +108,8 @@ protected:
 
 	/**
 	 * @brief Called when parsing is beginning.
-	 *
-	 * @return True to begin parsing, false to not even attempt to parse.
 	 */
-	virtual bool OnParseBegin() { return true; }
+	virtual void OnParseBegin() { }
 
 	/**
 	 * @brief Called when parsing has ended.

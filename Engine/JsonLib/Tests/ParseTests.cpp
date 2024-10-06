@@ -1,4 +1,5 @@
 #include "Engine/Logging.h"
+#include "HAL/Timer.h"
 #include "JSON/JsonParser.h"
 #include <gtest/gtest.h>
 
@@ -24,9 +25,14 @@ TEST(ParseTests, FromStringComplex)
 {
 	constexpr FStringView jsonString = "[\"string\", +42, -3.14, null, {\"key\": \"value\"}]"_sv;
 
+	const FTimer parseTimer = FTimer::Start();
 	const TErrorOr<FJsonValue> parseResult = JSON::ParseString(jsonString);
+	const FTimeSpan parseDuration = parseTimer.GetElapsedTime();
+
 	ASSERT_FALSE(parseResult.IsError());
 	ASSERT_TRUE(parseResult.GetValue().IsArray());
+
+	UM_LOG(Info, "Took {} ms to parse JSON: {}", parseDuration.GetTotalMilliseconds(), jsonString);
 
 	const FJsonArray* array = parseResult.GetValue().AsArray();
 	ASSERT_EQ(array->Num(), 5);
