@@ -278,6 +278,9 @@ target_include_directories(UmbralEngine
 )
 
 target_link_libraries(UmbralEngine
+	PUBLIC
+		umbral::core_lib
+		umbral::object_lib
 	PRIVATE
 		assimp::assimp
 		box2d::box2d
@@ -285,8 +288,6 @@ target_link_libraries(UmbralEngine
 		freeimage::FreeImage
 		freeimage::FreeImagePlus
 		Freetype::Freetype
-		umbral::core_lib
-		umbral::object_lib
 		umbral::shader_lib
 		Vulkan::Vulkan
 )
@@ -324,18 +325,22 @@ if(WITH_TESTING)
 		"Tests/GoogleTestEngine.h"
 		"Tests/Main.cpp"
 		"Tests/MetaTests.cpp"
+		"Tests/MultipleObjectClasses.cpp"
+		"Tests/MultipleObjectClasses.h"
 	)
 
 	add_executable(umbral::engine::tests ALIAS UmbralEngineTests)
 
 	target_include_directories(UmbralEngineTests
-		PRIVATE "Source"
+		PRIVATE
+			"Source"
 	)
 
 	target_link_libraries(UmbralEngineTests
 		PUBLIC
 			umbral::core_lib
 			umbral::engine
+			umbral::object_lib
 			GTest::gtest
 			#GTest::gtest_main
 			#GTest::gmock

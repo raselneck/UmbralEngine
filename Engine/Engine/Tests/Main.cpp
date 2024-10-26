@@ -9,16 +9,16 @@ class FUmbralTestModule : public IGameModule
 public:
 
 	// IModule BEGIN
+	[[nodiscard]] virtual TSubclassOf<UEngine> GetEngineClass() const override;
 	void StartupModule() override;
 	void ShutdownModule() override;
 	// IModule END
-
-protected:
-
-	// IEngineModule BEGIN
-	[[nodiscard]] virtual TObjectPtr<UEngine> CreateEngine(TBadge<FApplication>) override;
-	// IEngineModule END
 };
+
+TSubclassOf<UEngine> FUmbralTestModule::GetEngineClass() const
+{
+	return UGoogleTestEngine::StaticType();
+}
 
 void FUmbralTestModule::StartupModule()
 {
@@ -34,11 +34,6 @@ void FUmbralTestModule::StartupModule()
 
 void FUmbralTestModule::ShutdownModule()
 {
-}
-
-TObjectPtr<UEngine> FUmbralTestModule::CreateEngine(TBadge<FApplication>)
-{
-	return MakeObject<UGoogleTestEngine>();
 }
 
 IMPLEMENT_GAME_MODULE(FUmbralTestModule, UmbralTest)
