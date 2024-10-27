@@ -457,11 +457,27 @@ public:
 	 * @return The newly added element.
 	 */
 	template<typename... ConstructTypes>
-	[[nodiscard]] ElementType& Emplace(ConstructTypes&& ... args)
+	[[nodiscard]] ElementType& Emplace(ConstructTypes&&... args)
 	{
 		const int32 elementIndex = AddUninitialized(1);
-		FMemory::ConstructObjectAt<ElementType>(m_Data + elementIndex, Forward<ConstructTypes>(args) ...);
-		return m_Data[elementIndex];
+		return EmplaceAt(elementIndex, Forward<ConstructTypes>(args)...);
+	}
+
+	/**
+	 * @brief Constructs a new element in-place at the given index.
+	 *
+	 * @tparam ConstructTypes The types of the arguments to forward to the new element's constructor.
+	 * @param index The index to emplace the item at.
+	 * @param args The arguments to forward to the new element's constructor.
+	 * @return The emplaced element.
+	 */
+	template<typename... ConstructTypes>
+	[[maybe_unused]] ElementType& EmplaceAt(const SizeType index, ConstructTypes&&... args)
+	{
+		UM_ASSERT(IsValidIndex(index), "Attempting to emplace value at invalid index");
+
+		FMemory::ConstructObjectAt<ElementType>(m_Data + index, Forward<ConstructTypes>(args) ...);
+		return m_Data[index];
 	}
 
 	/**
