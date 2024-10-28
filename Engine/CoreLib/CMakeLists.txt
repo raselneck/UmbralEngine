@@ -21,6 +21,7 @@ set(UMBRAL_CORE_LIB_HEADERS
 	"Include/Containers/Pair.h"
 	"Include/Containers/Queue.h"
 	"Include/Containers/RedBlackTree.h"
+	"Include/Containers/RingBuffer.h"
 	"Include/Containers/Span.h"
 	"Include/Containers/Stack.h"
 	"Include/Containers/StaticArray.h"
