@@ -17,6 +17,8 @@ if("${Vulkan_GLSLC_EXECUTABLE}" STREQUAL "")
 endif()
 
 set(UMBRAL_HEADER_FILES
+	# TODO Move ContentManager and StaticMesh into Content folder
+	"Include/Content/Font.h"
 	"Include/Engine/ContentManager.h"
 	"Include/Engine/EditorEngine.h"
 	"Include/Engine/Engine.h"
@@ -70,9 +72,12 @@ set(UMBRAL_HEADER_FILES
 	"Include/Input/Keyboard.h"
 	"Include/Input/Mouse.h"
 	"Include/Input/MouseButton.h"
+	"Include/Rendering/TextRenderer.h"
 )
 
 set(UMBRAL_SOURCE_FILES
+	# TODO Move ContentManager and StaticMesh into Content folder
+	"Source/Content/Font.cpp"
 	"Source/Engine/Application.cpp"
 	"Source/Engine/Application.h"
 	"Source/Engine/ContentManager.cpp"
@@ -109,6 +114,7 @@ set(UMBRAL_SOURCE_FILES
 	"Source/Input/Keyboard.cpp"
 	"Source/Input/Mouse.cpp"
 	"Source/Main/Main.cpp"
+	"Source/Rendering/TextRenderer.cpp"
 )
 
 set(UMBRAL_GLAD_FILES
