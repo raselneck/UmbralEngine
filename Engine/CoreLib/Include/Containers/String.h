@@ -136,6 +136,13 @@ public:
 	explicit FString(FStringView chars);
 
 	/**
+	 * @brief Creates a string from a span of chars.
+	 *
+	 * @param chars The char span.
+	 */
+	explicit FString(TSpan<const char> chars);
+
+	/**
 	 * @brief Appends the given characters to this string.
 	 *
 	 * @param chars The characters to append.
@@ -149,6 +156,13 @@ public:
 	 * @param value The value to append.
 	 */
 	void Append(FStringView value);
+
+	/**
+	 * @brief Appends the given char span to this string.
+	 *
+	 * @param value The value to append.
+	 */
+	void Append(TSpan<const char> value);
 
 	/**
 	 * @brief Gets this string as its lowercase variant.
@@ -303,6 +317,22 @@ public:
 	[[nodiscard]] static FString FormatVarArgList(FStringView format, va_list args);
 
 	// TODO FormatC (to use FormatVarArgList)
+
+	/**
+	 * @brief Creates a string from a byte array.
+	 *
+	 * @param bytes The byte array.
+	 * @return The string.
+	 */
+	[[nodiscard]] static FString FromByteArray(const TArray<uint8>& bytes);
+
+	/**
+	 * @brief Creates a string from a byte array.
+	 *
+	 * @param bytes The byte array.
+	 * @return The string.
+	 */
+	[[nodiscard]] static FString FromByteArray(TArray<uint8>&& bytes);
 
 	// TODO FromChar
 

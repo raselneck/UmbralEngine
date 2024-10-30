@@ -110,6 +110,16 @@ FString::FString(const FStringView chars)
 	Append(chars);
 }
 
+FString::FString(const TSpan<const char> chars)
+{
+	if (chars.IsEmpty())
+	{
+		return;
+	}
+
+	Append(chars);
+}
+
 FString::FString(TBadge<FStringBuilder>, TArray<FString::CharType> chars)
 {
 	UM_ASSERT(chars.IsEmpty() || chars.Last() == TraitsType::NullChar, "Given character array is malformed");
@@ -155,6 +165,11 @@ void FString::Append(const FStringView value)
 			UM_ENSURE(longData.Chars.Last() == TraitsType::NullChar);
 		}
 	});
+}
+
+void FString::Append(const TSpan<const char> value)
+{
+	Append(FStringView { value });
 }
 
 FString FString::AsLower() const
@@ -205,6 +220,27 @@ FString FString::FormatVarArgList(const FStringView formatView, va_list args)
 	{
 		result.Append(buffer, numCharsFormatted);
 	}
+
+	return result;
+}
+
+FString FString::FromByteArray(const TArray<uint8>& bytes)
+{
+	TArray<uint8> copyOfBytes = bytes;
+	return FromByteArray(MoveTemp(copyOfBytes));
+}
+
+FString FString::FromByteArray(TArray<uint8>&& bytes)
+{
+	FString result;
+
+	TArray<char> chars = bytes.ReleaseAs<char>();
+	if (chars.Num() > 0 && chars.Last() != TraitsType::NullChar)
+	{
+		chars.Add(TraitsType::NullChar);
+	}
+
+	result.m_CharData.ResetToType<Private::FLongStringData>(MoveTemp(chars));
 
 	return result;
 }
