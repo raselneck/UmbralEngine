@@ -100,6 +100,9 @@ namespace Private
 template<typename T>
 class TArray final
 {
+	template<typename U>
+	friend class TArray;
+
 public:
 
 	using ElementType = T;
@@ -808,6 +811,28 @@ public:
 		{
 			RemoveAt(valueIndex);
 		}
+	}
+
+	/**
+	 * @brief Releases ownership of this array's values into another array as the given type.
+	 *
+	 * @tparam U The type to release this array's values as.
+	 * @return The new, "converted" array.
+	 */
+	template<typename U>
+	TArray<U> ReleaseAs()
+		requires(IsPOD<T> && IsPOD<U> && sizeof(T) == sizeof(U))
+	{
+		TArray<U> result;
+		result.m_Capacity = m_Capacity;
+		result.m_Data = reinterpret_cast<U*>(m_Data);
+		result.m_NumElements = m_NumElements;
+
+		m_Capacity = 0;
+		m_Data = nullptr;
+		m_NumElements = 0;
+
+		return result;
 	}
 
 	/**
