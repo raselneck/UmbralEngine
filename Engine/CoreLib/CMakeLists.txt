@@ -91,6 +91,7 @@ set(UMBRAL_CORE_LIB_HEADERS
 	"Include/Meta/TypeInfo.h"
 	"Include/Misc/AtExit.h"
 	"Include/Misc/Badge.h"
+	"Include/Misc/Base64.h"
 	"Include/Misc/CString.h"
 	"Include/Misc/DoOnce.h"
 	"Include/Misc/EnumMacros.h"
@@ -221,6 +222,7 @@ set(UMBRAL_CORE_LIB_SOURCES
 	"Source/Meta/PropertyInfo.cpp"
 	"Source/Meta/StructInfo.cpp"
 	"Source/Meta/TypeInfo.cpp"
+	"Source/Misc/Base64.cpp"
 	"Source/Misc/CString.cpp"
 	"Source/Misc/InternalUnicode.cpp"
 	"Source/Misc/InternalUnicode.h"
@@ -335,6 +337,7 @@ if(WITH_TESTING)
 	add_executable(UmbralCoreLibTests
 		"Tests/AnyTests.cpp"
 		"Tests/ArrayTests.cpp"
+		"Tests/Base64Tests.cpp"
 		"Tests/FileTests.cpp"
 		"Tests/FunctionTests.cpp"
 		"Tests/HashMapTests.cpp"
