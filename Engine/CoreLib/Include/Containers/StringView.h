@@ -214,6 +214,16 @@ public:
 	}
 
 	/**
+	 * @brief Gets this string view as a byte span.
+	 *
+	 * @return This string view as a byte span.
+	 */
+	[[nodiscard]] TSpan<const uint8> AsByteSpan() const
+	{
+		return CastSpan<uint8>(AsSpan());
+	}
+
+	/**
 	 * @brief Gets the character at the given index.
 	 *
 	 * @param index The index of the character to get.
@@ -222,6 +232,18 @@ public:
 	[[nodiscard]] constexpr CharType At(const SizeType index) const
 	{
 		return m_CharSpan.At(index);
+	}
+
+	/**
+	 * @brief Gets the character at \p index if it is a valid index, or \p defaultChar if it is not.
+	 *
+	 * @param index The index.
+	 * @param defaultChar The default character to return if \p index is invalid.
+	 * @return The character at \p index if it is a valid index, or \p defaultChar if it is not.
+	 */
+	[[nodiscard]] constexpr CharType AtOrDefault(const SizeType index, const CharType defaultChar = CharTraitsType::NullChar) const
+	{
+		return IsValidIndex(index) ? m_CharSpan.At(index) : defaultChar;
 	}
 
 	/**
