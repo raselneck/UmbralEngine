@@ -11,3 +11,6 @@ template<typename T>
 struct TIsPOD : TBoolConstant<__is_pod(T)>
 {
 };
+
+template<typename T>
+inline constexpr bool IsPOD = TIsPOD<T>::Value;
