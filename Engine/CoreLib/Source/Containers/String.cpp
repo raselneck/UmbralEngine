@@ -234,13 +234,13 @@ FString FString::FromByteArray(TArray<uint8>&& bytes)
 {
 	FString result;
 
-	TArray<char> chars = bytes.ReleaseAs<char>();
-	if (chars.Num() > 0 && chars.Last() != TraitsType::NullChar)
-	{
-		chars.Add(TraitsType::NullChar);
-	}
+	Private::FLongStringData& longStringData = result.m_CharData.ResetToType<Private::FLongStringData>();
+	longStringData.Chars = bytes.ReleaseAs<char>();
 
-	result.m_CharData.ResetToType<Private::FLongStringData>(MoveTemp(chars));
+	if (longStringData.Chars.Num() > 0 && longStringData.Chars.Last() != TraitsType::NullChar)
+	{
+		longStringData.Chars.Add(TraitsType::NullChar);
+	}
 
 	return result;
 }
